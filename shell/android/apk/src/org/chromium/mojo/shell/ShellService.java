@@ -18,12 +18,12 @@ import android.util.Log;
 import org.chromium.base.ApplicationStatus;
 import org.chromium.base.CalledByNative;
 import org.chromium.base.JNINamespace;
+import org.chromium.mojo.PlatformViewportAndroid;
 import org.chromium.mojo.bindings.InterfaceRequest;
 import org.chromium.mojo.system.MessagePipeHandle;
 import org.chromium.mojo.system.MojoException;
 import org.chromium.mojo.system.Pair;
 import org.chromium.mojo.system.impl.CoreImpl;
-import org.chromium.mojo.PlatformViewportAndroid;
 import org.chromium.mojom.mojo.ServiceProvider;
 import org.chromium.mojom.mojo.Shell;
 
@@ -179,11 +179,11 @@ public class ShellService extends Service {
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-      long nativePlatformViewportAndroid = rootIntent.getLongExtra("nativeViewportId", 0);
-      if (nativePlatformViewportAndroid != 0 &&
-          rootIntent.getComponent().getClassName().equals(ViewportActivity.class.getName())) {
-        PlatformViewportAndroid.destroyNativeViewport(nativePlatformViewportAndroid);
-      }
+        long nativePlatformViewportAndroid = rootIntent.getLongExtra("nativeViewportId", 0);
+        if (nativePlatformViewportAndroid != 0 &&
+              rootIntent.getComponent().getClassName().equals(ViewportActivity.class.getName())) {
+            PlatformViewportAndroid.destroyNativeViewport(nativePlatformViewportAndroid);
+        }
     }
 
     /**
