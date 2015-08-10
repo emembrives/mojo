@@ -182,8 +182,7 @@ public class ShellService extends Service {
         long nativePlatformViewportAndroid = rootIntent.getLongExtra("nativeViewportId", 0);
         if (nativePlatformViewportAndroid != 0
                 && rootIntent.getComponent().getClassName().equals(
-                    ViewportActivity.class.getName()))
-              {
+                    ViewportActivity.class.getName())) {
             PlatformViewportAndroid.destroyNativeViewport(nativePlatformViewportAndroid);
         }
     }
