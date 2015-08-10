@@ -8,5 +8,5 @@ module native_viewport;
 // Service implemented by the Shell for the Native Viewport service.
 interface NativeViewportShellService {
   // Asks the shell to create a new native window (on Android, a new task).
-  CreateNewNativeWindow(int64 nativePlatformViewportAndroid);
+  CreateNewNativeWindow() => ();
 };

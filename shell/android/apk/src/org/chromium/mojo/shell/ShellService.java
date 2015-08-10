@@ -179,12 +179,12 @@ public class ShellService extends Service {
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        long nativePlatformViewportAndroid = rootIntent.getLongExtra("nativeViewportId", 0);
-        if (nativePlatformViewportAndroid != 0
-                && rootIntent.getComponent().getClassName().equals(
+        if (!rootIntent.getComponent().getClassName().equals(
                            ViewportActivity.class.getName())) {
-            PlatformViewportAndroid.destroyNativeViewport(nativePlatformViewportAndroid);
+            return;
         }
+        long viewportId = rootIntent.getLongExtra("ViewportId", 0);
+        NativeViewportSupportApplicationDelegate.viewportClosed(viewportId);
     }
 
     /**

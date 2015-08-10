@@ -15,8 +15,19 @@ import org.chromium.mojo.bindings.InterfaceRequest;
 import org.chromium.mojo.system.MojoException;
 import org.chromium.mojom.mojo.Shell;
 import org.chromium.mojom.native_viewport.NativeViewportShellService;
+import org.chromium.mojom.native_viewport.NativeViewportShellService.CreateNewNativeWindowResponse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 final class NativeViewportSupportApplicationDelegate implements ApplicationDelegate {
+    /**
+     * Map of active UI tasks (activities)
+     */
+    private static Map<Long, CreateNewNativeWindowResponse> sActiveTasks =
+            new HashMap<Long, CreateNewNativeWindowResponse>();
+    private static long sLastViewportId = 0;
+
     private class NativeViewportShellServiceFactoryBinder
             implements ServiceFactoryBinder<NativeViewportShellService> {
         @Override
@@ -38,15 +49,26 @@ final class NativeViewportSupportApplicationDelegate implements ApplicationDeleg
         public void onConnectionError(MojoException e) {}
 
         @Override
-        public void createNewNativeWindow(long nativePlatformViewportAndroid) {
+        public void createNewNativeWindow(CreateNewNativeWindowResponse callback) {
+            long viewportId = sLastViewportId++;
+
+            sActiveTasks.put(viewportId, callback);
+
             Context context = ApplicationStatus.getApplicationContext();
             Intent newDocumentIntent = new Intent(context, ViewportActivity.class);
             newDocumentIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
             newDocumentIntent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
             newDocumentIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            newDocumentIntent.putExtra("nativeViewportId", nativePlatformViewportAndroid);
+            newDocumentIntent.putExtra("ViewportId", viewportId);
 
             context.startActivity(newDocumentIntent);
+        }
+    }
+
+    public static void viewportClosed(long viewportId) {
+        if (sActiveTasks.containsKey(viewportId)) {
+            sActiveTasks.get(viewportId).call();
+            sActiveTasks.remove(viewportId);
         }
     }
 
