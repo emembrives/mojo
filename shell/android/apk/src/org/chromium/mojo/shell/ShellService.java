@@ -18,7 +18,6 @@ import android.util.Log;
 import org.chromium.base.ApplicationStatus;
 import org.chromium.base.CalledByNative;
 import org.chromium.base.JNINamespace;
-import org.chromium.mojo.PlatformViewportAndroid;
 import org.chromium.mojo.bindings.InterfaceRequest;
 import org.chromium.mojo.system.MessagePipeHandle;
 import org.chromium.mojo.system.MojoException;
