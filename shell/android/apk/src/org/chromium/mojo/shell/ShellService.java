@@ -178,8 +178,7 @@ public class ShellService extends Service {
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        if (!rootIntent.getComponent().getClassName().equals(
-                           ViewportActivity.class.getName())) {
+        if (!rootIntent.getComponent().getClassName().equals(ViewportActivity.class.getName())) {
             return;
         }
         long viewportId = rootIntent.getLongExtra("ViewportId", 0);
