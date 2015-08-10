@@ -168,7 +168,7 @@ void PlatformViewportAndroid::Init(const gfx::Rect& bounds) {
   NativeViewportShellServicePtr shell_service;
   application_->ConnectToService("mojo:native_viewport_support",
                                  &shell_service);
-  shell_service->CreateNewNativeWindow();
+  shell_service->CreateNewNativeWindow(reinterpret_cast<intptr_t>(this));
 }
 
 void PlatformViewportAndroid::Show() {

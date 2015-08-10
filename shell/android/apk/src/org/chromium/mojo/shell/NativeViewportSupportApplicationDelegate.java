@@ -38,12 +38,13 @@ final class NativeViewportSupportApplicationDelegate implements ApplicationDeleg
         public void onConnectionError(MojoException e) {}
 
         @Override
-        public void createNewNativeWindow() {
+        public void createNewNativeWindow(long nativePlatformViewportAndroid) {
             Context context = ApplicationStatus.getApplicationContext();
             Intent newDocumentIntent = new Intent(context, ViewportActivity.class);
             newDocumentIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
             newDocumentIntent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
             newDocumentIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            newDocumentIntent.putExtra("nativeViewportId", nativePlatformViewportAndroid);
 
             context.startActivity(newDocumentIntent);
         }

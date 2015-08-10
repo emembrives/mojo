@@ -32,8 +32,8 @@ GaneshView::GaneshView(mojo::Shell* shell, mojo::View* view)
 }
 
 GaneshView::~GaneshView() {
-  if (gl_context_)
-    gl_context_->Destroy();
+  // GLContext::Destroy only calls its destructor, so we don't need to do
+  // anything special here.
 }
 
 void GaneshView::OnSurfaceIdAvailable(mojo::SurfaceIdPtr surface_id) {

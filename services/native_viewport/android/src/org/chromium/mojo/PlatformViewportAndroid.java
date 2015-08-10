@@ -132,6 +132,10 @@ public class PlatformViewportAndroid extends SurfaceView {
         return mKeyboardState.createInputConnection(outAttrs);
     }
 
+    public static void destroyNativeViewport(long nativePlatformViewportAndroid) {
+        nativeDestroy(nativePlatformViewportAndroid);
+    }
+
     private boolean notifyTouchEventAtIndex(MotionEvent event, int index) {
         return nativeTouchEvent(mNativeMojoViewport, event.getEventTime(), event.getActionMasked(),
                 event.getPointerId(index), event.getX(index), event.getY(index),
