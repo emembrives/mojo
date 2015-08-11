@@ -19,14 +19,14 @@ import org.chromium.mojom.native_viewport.NativeViewportShellService.CreateNewNa
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 final class NativeViewportSupportApplicationDelegate implements ApplicationDelegate {
     /**
-     * Map of active UI tasks (activities)
+     * Map of active UI tasks (activities), keyed by their UUID.
      */
-    private static Map<Long, CreateNewNativeWindowResponse> sActiveTasks =
-            new HashMap<Long, CreateNewNativeWindowResponse>();
-    private static long sLastViewportId = 0;
+    private static Map<String, CreateNewNativeWindowResponse> sActiveTasks =
+            new HashMap<String, CreateNewNativeWindowResponse>();
 
     private class NativeViewportShellServiceFactoryBinder
             implements ServiceFactoryBinder<NativeViewportShellService> {
@@ -50,7 +50,7 @@ final class NativeViewportSupportApplicationDelegate implements ApplicationDeleg
 
         @Override
         public void createNewNativeWindow(CreateNewNativeWindowResponse callback) {
-            long viewportId = sLastViewportId++;
+            String viewportId = UUID.randomUUID().toString();
 
             sActiveTasks.put(viewportId, callback);
 
@@ -65,11 +65,10 @@ final class NativeViewportSupportApplicationDelegate implements ApplicationDeleg
         }
     }
 
-    public static void viewportClosed(long viewportId) {
-        if (sActiveTasks.containsKey(viewportId)) {
-            sActiveTasks.get(viewportId).call();
-            sActiveTasks.remove(viewportId);
-        }
+    public static void viewportClosed(String viewportId) {
+        assert sActiveTasks.containsKey(viewportId);
+        sActiveTasks.get(viewportId).call();
+        sActiveTasks.remove(viewportId);
     }
 
     /**

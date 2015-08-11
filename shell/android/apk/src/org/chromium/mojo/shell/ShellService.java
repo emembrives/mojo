@@ -181,7 +181,7 @@ public class ShellService extends Service {
         if (!rootIntent.getComponent().getClassName().equals(ViewportActivity.class.getName())) {
             return;
         }
-        long viewportId = rootIntent.getLongExtra("ViewportId", 0);
+        String viewportId = rootIntent.getStringExtra("ViewportId");
         NativeViewportSupportApplicationDelegate.viewportClosed(viewportId);
     }
 
