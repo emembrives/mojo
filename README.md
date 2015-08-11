@@ -154,53 +154,6 @@ You do not need to rerun `gn gen out/Debug` - ninja does so automatically each
 time you build. You might need to rerun `mojo/tools/mojob.py gn` if the GN
 flags have changed.
 
-## Contribute
-
-With git you should make all your changes in a local branch. Once your change is
-committed, you can delete this branch.
-
-Create a local branch named "mywork" and make changes to it.
-```
-  cd src
-  git new-branch mywork
-  vi ...
-```
-Commit your change locally. (this doesn't commit your change to the SVN or Git
-server)
-
-```
-  git commit -a
-```
-
-Fix your source code formatting.
-
-```
-$ git cl format
-```
-
-Upload your change for review.
-
-```
-$ git cl upload
-```
-
-Respond to review comments.
-
-See [Contributing code](http://www.chromium.org/developers/contributing-code)
-for more detailed git instructions, including how to update your CL when you get
-review comments. There's a short tutorial that might be helpful to try before
-making your first change: [C++ in Chromium
-101](http://dev.chromium.org/developers/cpp-in-chromium-101-codelab).
-
-To land a change after receiving LGTM:
-```
-$ git cl land
-```
-
-Don't break the build! Waterfall is here:
-http://build.chromium.org/p/client.mojo/waterfall
-
-
 ## Run Mojo Shell
 
 Devtools `mojo_run` is a universal shell runner abstracting away the differences
@@ -235,13 +188,16 @@ mojo_run https://core.mojoapps.io/examples/dart/device_info/main.dart [--android
 ```
 
 Some applications are meant to be run embedded in a **window manager**. To run
-these, pass their urls as arguments for `mojo:window_manager`, which is a
-special url that `mojo_run` maps to a real window manager (
-https://core.mojoapps.io/kiosk_wm.mojo) for you:
+these, you can pass the app url using the `--embed` flag. This will run the
+window manager and pass the given url to it:
 
 ```sh
-devtools/common/mojo_run "mojo:window_manager https://core.mojoapps.io/ganesh_app.mojo" [--android]
+devtools/common/mojo_run --embed https://core.mojoapps.io/ganesh_app.mojo [--android]
 ```
+
+By default, `mojo_run` uses https://core.mojoapps.io/kiosk_wm.mojo as the window
+manager. You can pass a different window manager url using the
+`--window-manager` flag to override this.
 
 For additional information on `mojo_run` refer to the built-in help and the
 [documentation](https://github.com/domokit/devtools/blob/master/README.md#runner).
@@ -288,3 +244,49 @@ If you wish to, you can also run the Linux Mojo shell directly with no wrappers:
 ```
 ./out/Debug/mojo_shell out/Debug/spinning_cube.mojo
 ```
+
+## Contribute
+
+With git you should make all your changes in a local branch. Once your change is
+committed, you can delete this branch.
+
+Create a local branch named "mywork" and make changes to it.
+```
+  cd src
+  git new-branch mywork
+  vi ...
+```
+Commit your change locally. (this doesn't commit your change to the SVN or Git
+server)
+
+```
+  git commit -a
+```
+
+Fix your source code formatting.
+
+```
+$ git cl format
+```
+
+Upload your change for review.
+
+```
+$ git cl upload
+```
+
+Respond to review comments.
+
+See [Contributing code](http://www.chromium.org/developers/contributing-code)
+for more detailed git instructions, including how to update your CL when you get
+review comments. There's a short tutorial that might be helpful to try before
+making your first change: [C++ in Chromium
+101](http://dev.chromium.org/developers/cpp-in-chromium-101-codelab).
+
+To land a change after receiving LGTM:
+```
+$ git cl land
+```
+
+Don't break the build! Waterfall is here:
+http://build.chromium.org/p/client.mojo/waterfall
