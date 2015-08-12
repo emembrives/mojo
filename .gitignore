@@ -80,6 +80,18 @@ v8.log
 /v8/
 
 # dart packages directories and related.
+/examples/dart/hello_world/hello/.packages
+/examples/dart/hello_world/hello/packages
+/examples/dart/device_info/.packages
+/examples/dart/device_info/packages
+/examples/dart/hello_world/world/.packages
+/examples/dart/hello_world/world/packages
+/examples/dart/netcat/.packages
+/examples/dart/netcat/packages
+/examples/dart/traced_application/.packages
+/examples/dart/traced_application/packages
+/examples/dart/wget/.packages
+/examples/dart/wget/packages
 /mojo/common/dart/.packages
 /mojo/common/dart/packages
 /mojo/dart/apptest/.packages
@@ -93,16 +105,12 @@ v8.log
 /mojo/dart/mojom/test/packages
 /mojo/dart/observatory_test/.packages
 /mojo/dart/testing/.packages
-/sky/examples/hello_world/packages
-/sky/examples/stocks/packages
-/sky/sdk/packages/mojo/packages
-/sky/sdk/packages/mojo/pubspec.lock
-/sky/sdk/packages/sky/packages
-/sky/sdk/packages/sky/pubspec.lock
-
-# sky tools
-/sky/tools/skygo/linux64/sky_server
-/sky/tools/skygo/mac/sky_server
+/services/dart/test/echo/.packages
+/services/dart/test/echo/packages
+/services/dart/test/pingpong/.packages
+/services/dart/test/pingpong/packages
+/services/dart/test/pingpong_target/.packages
+/services/dart/test/pingpong_target/packages
 
 # downloaded keyboard_native resources.
 /services/keyboard_native/res/*.png

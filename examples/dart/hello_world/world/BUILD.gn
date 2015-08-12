@@ -4,12 +4,14 @@
 
 import("//mojo/public/dart/rules.gni")
 
-dartzip_packaged_application("world") {
+dartzip_packaged_application("mojo_dart_world_dartzip") {
+  output_name = "mojo_dart_world"
   sources = [
-    "main.dart",
+    "lib/main.dart",
+    "pubspec.yaml",
   ]
   deps = [
-    "//mojo/public/dart",
+    "//mojo/public/dart:dart_dartzip",
   ]
 
   # This exercises the ability of the Dart content handler to run isolates in
@@ -19,4 +21,21 @@ dartzip_packaged_application("world") {
   if (!is_debug) {
     strict = true
   }
+}
+
+dart_pkg("mojo_dart_world_pkg") {
+  entrypoints = [ "lib/main.dart" ]
+  sources = [
+    "pubspec.yaml",
+  ]
+  deps = [
+    "//mojo/public/dart",
+  ]
+}
+
+group("world") {
+  deps = [
+    ":mojo_dart_world_dartzip",
+    ":mojo_dart_world_pkg",
+  ]
 }
