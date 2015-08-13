@@ -66,10 +66,13 @@ class ConnectionManager : public ServerViewDelegate,
     DISALLOW_COPY_AND_ASSIGN(ScopedChange);
   };
 
-  ConnectionManager(ConnectionManagerDelegate* delegate,
-                    scoped_ptr<DisplayManager> display_manager,
-                    mojo::WindowManagerInternal* wm_internal);
+  ConnectionManager(ConnectionManagerDelegate* delegate);
   ~ConnectionManager() override;
+
+  // Adds a new root (window manager) connection.
+  void AddRoot(ViewManagerRootConnection* root_connection);
+  scoped_ptr<DisplayManager> display_manager,
+  mojo::WindowManagerInternal* wm_internal);
 
   // Creates a new ServerView. The return value is owned by the caller, but must
   // be destroyed before ConnectionManager.

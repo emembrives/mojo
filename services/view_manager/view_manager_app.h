@@ -54,21 +54,7 @@ class ViewManagerApp
       const ViewId& root_id,
       mojo::ViewManagerClientPtr view_manager_client) override;
 
-  // mojo::InterfaceFactory<mojo::ViewManagerService>:
-  void Create(
-      mojo::ApplicationConnection* connection,
-      mojo::InterfaceRequest<mojo::ViewManagerService> request) override;
-
-  // mojo::InterfaceFactory<mojo::WindowManagerInternalClient>:
-  void Create(mojo::ApplicationConnection* connection,
-              mojo::InterfaceRequest<mojo::WindowManagerInternalClient> request)
-      override;
-
   mojo::ApplicationImpl* app_impl_;
-  scoped_ptr<mojo::Binding<mojo::WindowManagerInternalClient>>
-      wm_internal_client_binding_;
-  mojo::InterfaceRequest<mojo::ViewManagerClient> wm_internal_client_request_;
-  mojo::WindowManagerInternalPtr wm_internal_;
   scoped_ptr<ConnectionManager> connection_manager_;
   mojo::TracingImpl tracing_;
 
