@@ -4,22 +4,23 @@
 
 import("//mojo/public/dart/rules.gni")
 
-dartzip_package("dart_dartzip") {
+dartzip_package("mojo_dart_http_load_test_dartzip") {
+  uses_pub = true
   sources = [
-    "lib/trace_provider_impl.dart",
-    "lib/tracing_helper.dart",
+    "lib/main.dart",
+    "lib/src/part0.dart",
     "pubspec.yaml",
   ]
   deps = [
     "//mojo/public/dart:dart_dartzip",
-    "//mojo/services/tracing/public/interfaces",
+    "//mojo/dart/mojo_services:mojo_services_dartzip",
   ]
 }
 
-dart_pkg("dart_pkg") {
-  entrypoints = [ "lib/tracing_helper.dart" ]
+dart_pkg("mojo_dart_http_load_test_pkg") {
+  entrypoints = [ "lib/main.dart" ]
   sources = [
-    "lib/trace_provider_impl.dart",
+    "lib/src/part0.dart",
     "pubspec.yaml",
   ]
   deps = [
@@ -28,9 +29,9 @@ dart_pkg("dart_pkg") {
   ]
 }
 
-group("dart") {
+group("http_load_test") {
   deps = [
-    ":dart_dartzip",
-    ":dart_pkg",
+    ":mojo_dart_http_load_test_dartzip",
+    ":mojo_dart_http_load_test_pkg",
   ]
 }
