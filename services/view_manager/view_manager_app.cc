@@ -45,6 +45,10 @@ void ViewManagerApp::OnCloseViewManagerRootConnection(
     ViewManagerRootConnection* view_manager_root_connection) {
   active_root_connections_.erase(view_manager_root_connection);
   delete view_manager_root_connection;
+
+  if (active_root_connections_.size() == 0) {
+    ApplicationImpl::Terminate();
+  }
 }
 
 }  // namespace view_manager
