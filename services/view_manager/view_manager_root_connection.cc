@@ -4,31 +4,95 @@
 
 #include "services/view_manager/view_manager_root_connection.h"
 
+#include "mojo/public/cpp/application/application_connection.h"
+#include "mojo/public/cpp/application/application_impl.h"
+#include "services/view_manager/client_connection.h"
+#include "services/view_manager/connection_manager.h"
+#include "services/view_manager/display_manager.h"
+#include "services/view_manager/view_manager_service_impl.h"
+
+using mojo::ApplicationConnection;
+using mojo::InterfaceRequest;
+using mojo::ViewManagerService;
+using mojo::WindowManagerInternalClient;
+
 namespace view_manager {
 
 ViewManagerRootConnection::ViewManagerRootConnection(
     mojo::ApplicationImpl* application_impl,
-    mojo::ApplicationConnection* connection)
-    : app_impl_(application_impl) {
+    ViewManagerRootConnectionObserver* observer)
+    : app_impl_(application_impl), observer_(observer) {}
+
+bool ViewManagerRootConnection::Init(mojo::ApplicationConnection* connection) {
+  if (connection_manager_.get()) {
+    VLOG(1) << "ViewManager allows only one window manager connection.";
+    return false;
+  }
   // |connection| originates from the WindowManager. Let it connect directly
   // to the ViewManager and WindowManagerInternalClient.
   connection->AddService<ViewManagerService>(this);
   connection->AddService<WindowManagerInternalClient>(this);
   connection->ConnectToService(&wm_internal_);
-
+  // If no ServiceProvider has been sent, refuse the connection.
+  if (!wm_internal_)
+    return false;
   wm_internal_.set_connection_error_handler(
       base::Bind(&ViewManagerRootConnection::OnLostConnectionToWindowManager,
                  base::Unretained(this)));
 
-  display_manager_.reset(new DefaultDisplayManager(
+  scoped_ptr<DefaultDisplayManager> display_manager(new DefaultDisplayManager(
       app_impl_, connection,
       base::Bind(&ViewManagerRootConnection::OnLostConnectionToWindowManager,
                  base::Unretained(this))));
+  connection_manager_.reset(
+      new ConnectionManager(this, display_manager.Pass(), wm_internal_.get()));
+  return true;
+}
+
+void ViewManagerRootConnection::OnLostConnectionToWindowManager() {
+  observer_->OnCloseViewManagerRootConnection(this);
+}
+
+ClientConnection*
+ViewManagerRootConnection::CreateClientConnectionForEmbedAtView(
+    ConnectionManager* connection_manager,
+    mojo::InterfaceRequest<mojo::ViewManagerService> service_request,
+    mojo::ConnectionSpecificId creator_id,
+    const std::string& creator_url,
+    const std::string& url,
+    const ViewId& root_id) {
+  mojo::ViewManagerClientPtr client;
+  app_impl_->ConnectToService(url, &client);
+
+  scoped_ptr<ViewManagerServiceImpl> service(new ViewManagerServiceImpl(
+      connection_manager, creator_id, creator_url, url, root_id));
+  return new DefaultClientConnection(service.Pass(), connection_manager,
+                                     service_request.Pass(), client.Pass());
+}
+
+ClientConnection*
+ViewManagerRootConnection::CreateClientConnectionForEmbedAtView(
+    ConnectionManager* connection_manager,
+    mojo::InterfaceRequest<mojo::ViewManagerService> service_request,
+    mojo::ConnectionSpecificId creator_id,
+    const std::string& creator_url,
+    const ViewId& root_id,
+    mojo::ViewManagerClientPtr view_manager_client) {
+  scoped_ptr<ViewManagerServiceImpl> service(new ViewManagerServiceImpl(
+      connection_manager, creator_id, creator_url, std::string(), root_id));
+  return new DefaultClientConnection(service.Pass(), connection_manager,
+                                     service_request.Pass(),
+                                     view_manager_client.Pass());
 }
 
 void ViewManagerRootConnection::Create(
     ApplicationConnection* connection,
     InterfaceRequest<ViewManagerService> request) {
+  if (connection_manager_->has_window_manager_client_connection()) {
+    VLOG(1) << "ViewManager interface requested more than once.";
+    return;
+  }
+
   scoped_ptr<ViewManagerServiceImpl> service(new ViewManagerServiceImpl(
       connection_manager_.get(), kInvalidConnectionId, std::string(),
       std::string("mojo:window_manager"), RootViewId()));
@@ -49,11 +113,14 @@ void ViewManagerRootConnection::Create(
     return;
   }
 
+  // ConfigureIncomingConnection() must have been called before getting here.
+  DCHECK(connection_manager_.get());
   wm_internal_client_binding_.reset(
       new mojo::Binding<WindowManagerInternalClient>(connection_manager_.get(),
                                                      request.Pass()));
   wm_internal_client_binding_->set_connection_error_handler(
-      &ApplicationImpl::Terminate);
+      base::Bind(&ViewManagerRootConnection::OnLostConnectionToWindowManager,
+                 base::Unretained(this)));
   wm_internal_->SetViewManagerClient(
       wm_internal_client_request_.PassMessagePipe());
 }

@@ -9,10 +9,7 @@
 #include "mojo/public/c/system/main.h"
 #include "mojo/public/cpp/application/application_connection.h"
 #include "mojo/public/cpp/application/application_impl.h"
-#include "services/view_manager/client_connection.h"
-#include "services/view_manager/connection_manager.h"
-#include "services/view_manager/display_manager.h"
-#include "services/view_manager/view_manager_service_impl.h"
+#include "services/view_manager/view_manager_root_connection.h"
 
 using mojo::ApplicationConnection;
 using mojo::ApplicationImpl;
@@ -29,48 +26,25 @@ ViewManagerApp::~ViewManagerApp() {}
 void ViewManagerApp::Initialize(ApplicationImpl* app) {
   app_impl_ = app;
   tracing_.Initialize(app);
-  connection_manager_.reset(new ConnectionManager(this));
 }
 
 bool ViewManagerApp::ConfigureIncomingConnection(
     ApplicationConnection* connection) {
-  connection_manager_.reset(
-      new ConnectionManager(this, display_manager.Pass(), wm_internal_.get()));
-  return true;
+  ViewManagerRootConnection* root_connection =
+      new ViewManagerRootConnection(app_impl_, this);
+  if (root_connection->Init(connection)) {
+    active_root_connections_.insert(root_connection);
+    return true;
+  } else {
+    delete root_connection;
+    return false;
+  }
 }
 
-void ViewManagerApp::OnLostConnectionToWindowManager() {
-  ApplicationImpl::Terminate();
-}
-
-ClientConnection* ViewManagerApp::CreateClientConnectionForEmbedAtView(
-    ConnectionManager* connection_manager,
-    mojo::InterfaceRequest<mojo::ViewManagerService> service_request,
-    mojo::ConnectionSpecificId creator_id,
-    const std::string& creator_url,
-    const std::string& url,
-    const ViewId& root_id) {
-  mojo::ViewManagerClientPtr client;
-  app_impl_->ConnectToService(url, &client);
-
-  scoped_ptr<ViewManagerServiceImpl> service(new ViewManagerServiceImpl(
-      connection_manager, creator_id, creator_url, url, root_id));
-  return new DefaultClientConnection(service.Pass(), connection_manager,
-                                     service_request.Pass(), client.Pass());
-}
-
-ClientConnection* ViewManagerApp::CreateClientConnectionForEmbedAtView(
-    ConnectionManager* connection_manager,
-    mojo::InterfaceRequest<mojo::ViewManagerService> service_request,
-    mojo::ConnectionSpecificId creator_id,
-    const std::string& creator_url,
-    const ViewId& root_id,
-    mojo::ViewManagerClientPtr view_manager_client) {
-  scoped_ptr<ViewManagerServiceImpl> service(new ViewManagerServiceImpl(
-      connection_manager, creator_id, creator_url, std::string(), root_id));
-  return new DefaultClientConnection(service.Pass(), connection_manager,
-                                     service_request.Pass(),
-                                     view_manager_client.Pass());
+void ViewManagerApp::OnCloseViewManagerRootConnection(
+    ViewManagerRootConnection* view_manager_root_connection) {
+  active_root_connections_.erase(view_manager_root_connection);
+  delete view_manager_root_connection;
 }
 
 }  // namespace view_manager
