@@ -7,14 +7,14 @@
 #include "mojo/services/view_manager/public/cpp/view.h"
 #include "services/window_manager/capture_controller.h"
 #include "services/window_manager/focus_controller.h"
-#include "services/window_manager/window_manager_app.h"
+#include "services/window_manager/window_manager_root.h"
 
 using mojo::Callback;
 using mojo::Id;
 
 namespace window_manager {
 
-WindowManagerImpl::WindowManagerImpl(WindowManagerApp* window_manager,
+WindowManagerImpl::WindowManagerImpl(WindowManagerRoot* window_manager,
                                      bool from_vm)
     : window_manager_(window_manager), from_vm_(from_vm), binding_(this) {
   window_manager_->AddConnection(this);

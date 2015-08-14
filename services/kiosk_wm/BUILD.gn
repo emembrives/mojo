@@ -9,6 +9,8 @@ mojo_native_application("kiosk_wm") {
   sources = [
     "kiosk_wm.cc",
     "kiosk_wm.h",
+    "kiosk_wm_controller.cc",
+    "kiosk_wm_controller.h",
     "main.cc",
     "merged_service_provider.cc",
     "merged_service_provider.h",

@@ -13,14 +13,14 @@
 
 namespace window_manager {
 
-class WindowManagerApp;
+class WindowManagerRoot;
 
 class WindowManagerImpl : public mojo::WindowManager {
  public:
   // See description above |from_vm_| for details on |from_vm|.
-  // WindowManagerImpl deletes itself on connection errors.  WindowManagerApp
+  // WindowManagerImpl deletes itself on connection errors.  WindowManagerRoot
   // also deletes WindowManagerImpl in its destructor.
-  WindowManagerImpl(WindowManagerApp* window_manager, bool from_vm);
+  WindowManagerImpl(WindowManagerRoot* window_manager, bool from_vm);
   ~WindowManagerImpl() override;
 
   void Bind(mojo::ScopedMessagePipeHandle window_manager_pipe);
@@ -45,7 +45,7 @@ class WindowManagerImpl : public mojo::WindowManager {
       const mojo::WindowManager::GetFocusedAndActiveViewsCallback& callback)
       override;
 
-  WindowManagerApp* window_manager_;
+  WindowManagerRoot* window_manager_;
 
   // Whether this connection originated from the ViewManager. Connections that
   // originate from the view manager are expected to have clients. Connections

@@ -7,8 +7,15 @@
 
 #include "mojo/public/cpp/bindings/string.h"
 #include "mojo/public/interfaces/application/service_provider.mojom.h"
+#include "mojo/services/view_manager/public/cpp/view_manager_delegate.h"
+
+namespace mojo {
+class ApplicationConnection;
+}
 
 namespace window_manager {
+
+class WindowManagerRoot;
 
 class WindowManagerDelegate {
  public:
@@ -19,6 +26,16 @@ class WindowManagerDelegate {
 
  protected:
   virtual ~WindowManagerDelegate() {}
+};
+
+class WindowManagerController : public WindowManagerDelegate,
+                                public mojo::ViewManagerDelegate {};
+
+class WindowManagerControllerFactory {
+ public:
+  virtual WindowManagerController* CreateWindowManagerController(
+      mojo::ApplicationConnection* connection,
+      WindowManagerRoot* wm_root_);
 };
 
 }  // namespace mojo
