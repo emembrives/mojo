@@ -9,6 +9,7 @@
 #include "mojo/public/cpp/application/application_connection.h"
 #include "mojo/public/cpp/application/application_delegate.h"
 #include "mojo/public/cpp/application/application_impl.h"
+#include "mojo/services/window_manager/public/interfaces/window_manager.mojom.h"
 #include "services/window_manager/window_manager_delegate.h"
 
 namespace window_manager {
@@ -21,7 +22,8 @@ namespace window_manager {
 // delegate interfaces exposed by the view manager, this object provides the
 // canonical implementation of said interfaces but will call out to the wrapped
 // instances.
-class WindowManagerApp : public mojo::ApplicationDelegate {
+class WindowManagerApp : public mojo::ApplicationDelegate,
+                         public mojo::InterfaceFactory<mojo::WindowManager> {
  public:
   WindowManagerApp(WindowManagerControllerFactory* controller_factory);
   ~WindowManagerApp() override;
@@ -32,6 +34,10 @@ class WindowManagerApp : public mojo::ApplicationDelegate {
       mojo::ApplicationConnection* connection) override;
 
  private:
+  // InterfaceFactory<WindowManager>:
+  void Create(mojo::ApplicationConnection* connection,
+              mojo::InterfaceRequest<mojo::WindowManager> request) override;
+
   mojo::ApplicationImpl* app_impl_;
   WindowManagerControllerFactory* controller_factory_;
 

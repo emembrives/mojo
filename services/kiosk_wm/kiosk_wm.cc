@@ -4,6 +4,7 @@
 
 #include "services/kiosk_wm/kiosk_wm.h"
 
+#include "mojo/services/window_manager/public/interfaces/window_manager.mojom.h"
 #include "services/kiosk_wm/kiosk_wm_controller.h"
 #include "services/window_manager/window_manager_delegate.h"
 
@@ -16,8 +17,12 @@ void KioskWM::Initialize(mojo::ApplicationImpl* app) {
   window_manager_app_->Initialize(app);
 
   // Format: --args-for="app_url default_url"
-  if (app->args().size() > 1)
+  if (app->args().size() > 1) {
     default_url_ = app->args()[1];
+    mojo::WindowManagerPtr window_manager;
+    app->ConnectToService("mojo:kiosk_wm", &window_manager);
+    window_manager->Embed(default_url_, nullptr, nullptr);
+  }
 }
 
 window_manager::WindowManagerController* KioskWM::CreateWindowManagerController(

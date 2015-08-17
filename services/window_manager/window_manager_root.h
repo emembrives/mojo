@@ -54,13 +54,13 @@ class WindowManagerRoot
       public ui::EventHandler,
       public FocusControllerObserver,
       public CaptureControllerObserver,
-      public mojo::InterfaceFactory<mojo::WindowManager>,
       public mojo::InterfaceFactory<mojo::WindowManagerInternal>,
       public mojo::InterfaceFactory<mojo::NativeViewportEventDispatcher>,
       public mojo::WindowManagerInternal {
  public:
   WindowManagerRoot(mojo::ApplicationImpl* application_impl,
-                    mojo::ApplicationConnection* connection);
+                    mojo::ApplicationConnection* connection,
+                    mojo::InterfaceRequest<mojo::WindowManager> request);
   ~WindowManagerRoot() override;
 
   void SetController(WindowManagerController* controller);
@@ -159,10 +159,6 @@ class WindowManagerRoot
       mojo::ApplicationConnection* connection,
       mojo::InterfaceRequest<mojo::WindowManagerInternal> request) override;
 
-  // InterfaceFactory<WindowManager>:
-  void Create(mojo::ApplicationConnection* connection,
-              mojo::InterfaceRequest<mojo::WindowManager> request) override;
-
   // InterfaceFactory<NativeViewportEventDispatcher>:
   void Create(mojo::ApplicationConnection* connection,
               mojo::InterfaceRequest<mojo::NativeViewportEventDispatcher>
@@ -177,6 +173,7 @@ class WindowManagerRoot
 
   mojo::ApplicationImpl* application_impl_;
   mojo::ApplicationConnection* connection_;
+  mojo::InterfaceRequest<mojo::WindowManager> request_;
 
   ViewManagerDelegate* wrapped_view_manager_delegate_;
   WindowManagerDelegate* window_manager_delegate_;

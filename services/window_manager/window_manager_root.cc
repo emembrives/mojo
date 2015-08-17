@@ -49,10 +49,13 @@ struct WindowManagerRoot::PendingEmbed {
 ////////////////////////////////////////////////////////////////////////////////
 // WindowManagerRoot, public:
 
-WindowManagerRoot::WindowManagerRoot(mojo::ApplicationImpl* application_impl,
-                                     mojo::ApplicationConnection* connection)
+WindowManagerRoot::WindowManagerRoot(
+    mojo::ApplicationImpl* application_impl,
+    mojo::ApplicationConnection* connection,
+    mojo::InterfaceRequest<mojo::WindowManager> request)
     : application_impl_(application_impl),
       connection_(connection),
+      request_(request.Pass()),
       wrapped_view_manager_delegate_(nullptr),
       window_manager_delegate_(nullptr),
       root_(nullptr) {}
@@ -77,8 +80,15 @@ WindowManagerRoot::~WindowManagerRoot() {
 void WindowManagerRoot::SetController(WindowManagerController* controller) {
   // The delegates should only be set once.
   DCHECK(!wrapped_view_manager_delegate_ && !window_manager_delegate_);
+  LOG(INFO) << "WindowManagerRoot::SetController";
+  window_manager_delegate_ = controller;
+  wrapped_view_manager_delegate_ = controller;
   LaunchViewManager(application_impl_);
-  connection_->AddService<WindowManager>(this);
+
+  WindowManagerImpl* wm = new WindowManagerImpl(this, false);
+  wm->Bind(request_.PassMessagePipe());
+  // WindowManagerImpl is deleted when the connection has an error, or from our
+  // destructor.
 }
 
 void WindowManagerRoot::AddConnection(WindowManagerImpl* connection) {
@@ -371,14 +381,6 @@ void WindowManagerRoot::Create(
   }
   wm_internal_binding_.reset(
       new mojo::Binding<WindowManagerInternal>(this, request.Pass()));
-}
-
-void WindowManagerRoot::Create(ApplicationConnection* connection,
-                               mojo::InterfaceRequest<WindowManager> request) {
-  WindowManagerImpl* wm = new WindowManagerImpl(this, false);
-  wm->Bind(request.PassMessagePipe());
-  // WindowManagerImpl is deleted when the connection has an error, or from our
-  // destructor.
 }
 
 void WindowManagerRoot::Create(

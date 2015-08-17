@@ -32,6 +32,7 @@ void KioskWMController::OnEmbed(
     mojo::View* root,
     mojo::InterfaceRequest<mojo::ServiceProvider> services,
     mojo::ServiceProviderPtr exposed_services) {
+  LOG(INFO) << "KioskWMController::OnEmbed";
   // KioskWMController does not support being embedded more than once.
   CHECK(!root_);
 

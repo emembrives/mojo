@@ -21,13 +21,16 @@ namespace view_manager {
 ViewManagerRootConnection::ViewManagerRootConnection(
     mojo::ApplicationImpl* application_impl,
     ViewManagerRootConnectionObserver* observer)
-    : app_impl_(application_impl), observer_(observer) {}
+    : app_impl_(application_impl), observer_(observer) {
+  LOG(INFO) << "ViewManagerRootConnection::ViewManagerRootConnection";
+}
 
 bool ViewManagerRootConnection::Init(mojo::ApplicationConnection* connection) {
   if (connection_manager_.get()) {
     VLOG(1) << "ViewManager allows only one window manager connection.";
     return false;
   }
+  LOG(INFO) << "ViewManagerRootConnection::Init";
   // |connection| originates from the WindowManager. Let it connect directly
   // to the ViewManager and WindowManagerInternalClient.
   connection->AddService<ViewManagerService>(this);

@@ -83,6 +83,7 @@ void PlatformViewportAndroid::Destroy(JNIEnv* env, jobject obj) {
 void PlatformViewportAndroid::SurfaceAttached(JNIEnv* env,
                                               jobject obj,
                                               jobject platform_viewport) {
+  LOG(INFO) << "PlatformViewportAndroid::SurfaceAttached";
   java_platform_viewport_android_ =
       JavaObjectWeakGlobalRef(env, platform_viewport);
 }
@@ -162,6 +163,7 @@ bool PlatformViewportAndroid::TouchEvent(JNIEnv* env,
 // PlatformViewportAndroid, PlatformViewport implementation:
 
 void PlatformViewportAndroid::Init(const gfx::Rect& bounds) {
+  LOG(INFO) << "PlatformViewportAndroid::Init";
   JNIEnv* env = base::android::AttachCurrentThread();
   Java_PlatformViewportAndroid_createRequest(env,
                                              reinterpret_cast<intptr_t>(this));
@@ -210,6 +212,7 @@ void PlatformViewportAndroid::ReleaseWindow() {
 scoped_ptr<PlatformViewport> PlatformViewport::Create(
     mojo::ApplicationImpl* application_,
     Delegate* delegate) {
+  LOG(INFO) << "PlatformViewport::Create";
   return scoped_ptr<PlatformViewport>(
              new PlatformViewportAndroid(application_, delegate))
       .Pass();

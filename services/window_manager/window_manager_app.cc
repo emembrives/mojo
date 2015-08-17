@@ -50,12 +50,20 @@ void WindowManagerApp::Initialize(mojo::ApplicationImpl* impl) {
 
 bool WindowManagerApp::ConfigureIncomingConnection(
     mojo::ApplicationConnection* connection) {
+  LOG(INFO) << "WindowManagerApp::ConfigureIncomingConnection " << connection;
+  connection->AddService<mojo::WindowManager>(this);
+  return true;
+}
+
+void WindowManagerApp::Create(
+    ApplicationConnection* connection,
+    mojo::InterfaceRequest<mojo::WindowManager> request) {
+  LOG(INFO) << "WindowManagerApp::Create";
   scoped_ptr<WindowManagerRoot> wm_root(
-      new WindowManagerRoot(app_impl_, connection));
+      new WindowManagerRoot(app_impl_, connection, request.Pass()));
   // FIXME(etiennej): manage lifetime of WindowManagerControllers.
   controller_factory_->CreateWindowManagerController(connection,
                                                      wm_root.release());
-  return true;
 }
 
 }  // namespace window_manager
