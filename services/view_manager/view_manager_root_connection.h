@@ -41,6 +41,7 @@ class ViewManagerRootConnection
 
   ViewManagerRootConnection(mojo::ApplicationImpl* application_impl,
                             ViewManagerRootConnectionObserver* observer);
+  ~ViewManagerRootConnection() override;
 
   // Returns true if the view manager root connection is established, false
   // otherwise. In that case, the object should probably be destroyed.
