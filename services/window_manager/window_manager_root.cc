@@ -80,7 +80,6 @@ WindowManagerRoot::~WindowManagerRoot() {
 void WindowManagerRoot::SetController(WindowManagerController* controller) {
   // The delegates should only be set once.
   DCHECK(!wrapped_view_manager_delegate_ && !window_manager_delegate_);
-  LOG(INFO) << "WindowManagerRoot::SetController";
   window_manager_delegate_ = controller;
   wrapped_view_manager_delegate_ = controller;
   LaunchViewManager(application_impl_);
