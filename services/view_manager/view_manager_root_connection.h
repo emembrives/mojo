@@ -21,6 +21,9 @@ class ApplicationImpl;
 
 namespace view_manager {
 
+// An instance of ViewManagerRootConnection represents one inbound connection
+// from a window manager. It handles the creation of services for this
+// connection, as well as any outbound connection necessary.
 class ViewManagerRootConnection
     : public ConnectionManagerDelegate,
       public mojo::InterfaceFactory<mojo::ViewManagerService>,
@@ -28,6 +31,7 @@ class ViewManagerRootConnection
  public:
   class ViewManagerRootConnectionObserver {
    public:
+    // Called when a ViewManagerRootConnection is closing.
     virtual void OnCloseViewManagerRootConnection(
         ViewManagerRootConnection* view_manager_root_connection) = 0;
 
@@ -37,6 +41,7 @@ class ViewManagerRootConnection
 
   ViewManagerRootConnection(mojo::ApplicationImpl* application_impl,
                             ViewManagerRootConnectionObserver* observer);
+  ~ViewManagerRootConnection() override;
 
   // Returns true if the view manager root connection is established, false
   // otherwise. In that case, the object should probably be destroyed.
