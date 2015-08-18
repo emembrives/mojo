@@ -23,6 +23,8 @@ ViewManagerRootConnection::ViewManagerRootConnection(
     ViewManagerRootConnectionObserver* observer)
     : app_impl_(application_impl), observer_(observer) {}
 
+ViewManagerRootConnection::~ViewManagerRootConnection() {}
+
 bool ViewManagerRootConnection::Init(mojo::ApplicationConnection* connection) {
   if (connection_manager_.get()) {
     VLOG(1) << "ViewManager allows only one window manager connection.";

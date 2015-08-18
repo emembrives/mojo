@@ -30,6 +30,9 @@ void ViewManagerApp::Initialize(ApplicationImpl* app) {
 
 bool ViewManagerApp::ConfigureIncomingConnection(
     ApplicationConnection* connection) {
+  // ViewManagerApp controls the lifetime of ViewManagerRootConnection. We keep
+  // a raw pointer in active_root_connections_ in order to be able to check and
+  // retrieve the object on closing.
   ViewManagerRootConnection* root_connection =
       new ViewManagerRootConnection(app_impl_, this);
   if (root_connection->Init(connection)) {

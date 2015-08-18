@@ -25,7 +25,7 @@ class ViewManagerApp
   bool ConfigureIncomingConnection(
       mojo::ApplicationConnection* connection) override;
 
-  // ViewManagerRootConnectionObserver
+  // ViewManagerRootConnectionObserver:
   void OnCloseViewManagerRootConnection(
       ViewManagerRootConnection* view_manager_root_connection) override;
 
