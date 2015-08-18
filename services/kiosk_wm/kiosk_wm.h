@@ -9,8 +9,8 @@
 #include "mojo/public/cpp/application/application_connection.h"
 #include "mojo/public/cpp/application/application_delegate.h"
 #include "mojo/public/cpp/application/application_impl.h"
-#include "services/window_manager/window_manager_delegate.h"
 #include "services/window_manager/window_manager_app.h"
+#include "services/window_manager/window_manager_delegate.h"
 
 namespace kiosk_wm {
 

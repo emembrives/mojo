@@ -19,7 +19,8 @@ using mojo::WindowManagerInternalClient;
 
 namespace view_manager {
 
-ViewManagerApp::ViewManagerApp() : app_impl_(nullptr) {}
+ViewManagerApp::ViewManagerApp() : app_impl_(nullptr) {
+}
 
 ViewManagerApp::~ViewManagerApp() {}
 

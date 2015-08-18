@@ -9,9 +9,11 @@
 namespace kiosk_wm {
 
 NavigatorHostImpl::NavigatorHostImpl(KioskWMController* window_manager)
-    : current_index_(-1), kiosk_wm_(window_manager) {}
+    : current_index_(-1), kiosk_wm_(window_manager) {
+}
 
-NavigatorHostImpl::~NavigatorHostImpl() {}
+NavigatorHostImpl::~NavigatorHostImpl() {
+}
 
 void NavigatorHostImpl::Bind(
     mojo::InterfaceRequest<mojo::NavigatorHost> request) {

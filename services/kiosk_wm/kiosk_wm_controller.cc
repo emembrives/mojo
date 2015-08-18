@@ -22,7 +22,8 @@ KioskWMController::KioskWMController(window_manager::WindowManagerRoot* wm_root,
   window_manager_root_->SetController(this);
 }
 
-KioskWMController::~KioskWMController() {}
+KioskWMController::~KioskWMController() {
+}
 
 base::WeakPtr<KioskWMController> KioskWMController::GetWeakPtr() {
   return weak_factory_.GetWeakPtr();
@@ -87,7 +88,6 @@ void KioskWMController::Create(
 
 void KioskWMController::OnViewManagerDisconnected(
     mojo::ViewManager* view_manager) {
-  LOG(INFO) << "KioskWMController::OnViewManagerDisconnected";
   root_ = nullptr;
   delete this;
 }

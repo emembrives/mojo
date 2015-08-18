@@ -21,7 +21,8 @@ namespace view_manager {
 ViewManagerRootConnection::ViewManagerRootConnection(
     mojo::ApplicationImpl* application_impl,
     ViewManagerRootConnectionObserver* observer)
-    : app_impl_(application_impl), observer_(observer) {}
+    : app_impl_(application_impl), observer_(observer) {
+}
 
 bool ViewManagerRootConnection::Init(mojo::ApplicationConnection* connection) {
   if (connection_manager_.get()) {

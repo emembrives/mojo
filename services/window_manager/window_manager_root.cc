@@ -58,7 +58,8 @@ WindowManagerRoot::WindowManagerRoot(
       request_(request.Pass()),
       wrapped_view_manager_delegate_(nullptr),
       window_manager_delegate_(nullptr),
-      root_(nullptr) {}
+      root_(nullptr) {
+}
 
 WindowManagerRoot::~WindowManagerRoot() {
   // TODO(msw|sky): Should this destructor explicitly delete the ViewManager?

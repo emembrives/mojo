@@ -36,7 +36,8 @@ namespace window_manager {
 
 WindowManagerApp::WindowManagerApp(
     WindowManagerControllerFactory* controller_factory)
-    : app_impl_(nullptr), controller_factory_(controller_factory) {}
+    : app_impl_(nullptr), controller_factory_(controller_factory) {
+}
 
 WindowManagerApp::~WindowManagerApp() {
   // FIXME(etiennej): Do something useful here.

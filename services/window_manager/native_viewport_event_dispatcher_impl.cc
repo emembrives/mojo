@@ -13,9 +13,11 @@ namespace window_manager {
 NativeViewportEventDispatcherImpl::NativeViewportEventDispatcherImpl(
     WindowManagerRoot* root,
     mojo::InterfaceRequest<mojo::NativeViewportEventDispatcher> request)
-    : root_(root), binding_(this, request.Pass()) {}
+    : root_(root), binding_(this, request.Pass()) {
+}
 
-NativeViewportEventDispatcherImpl::~NativeViewportEventDispatcherImpl() {}
+NativeViewportEventDispatcherImpl::~NativeViewportEventDispatcherImpl() {
+}
 
 ui::EventProcessor* NativeViewportEventDispatcherImpl::GetEventProcessor() {
   return root_->event_dispatcher();

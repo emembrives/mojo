@@ -174,8 +174,8 @@ void InitializeRedirection() {
   CHECK(base::CreateDirectoryAndGetError(directory, nullptr))
       << "Unable to create directory: " << directory.value();
   unlink(fifo_path.value().c_str());
-  CHECK(base::android::CreateFIFO(fifo_path, 0666)) << "Unable to create fifo: "
-                                                    << fifo_path.value();
+  CHECK(base::android::CreateFIFO(fifo_path, 0666))
+      << "Unable to create fifo: " << fifo_path.value();
   CHECK(base::android::RedirectStream(stdout, fifo_path, "w"))
       << "Failed to redirect stdout to file: " << fifo_path.value();
   CHECK(dup2(STDOUT_FILENO, STDERR_FILENO) != -1)

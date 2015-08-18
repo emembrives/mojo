@@ -22,8 +22,8 @@
 #include "services/window_manager/focus_controller_observer.h"
 #include "services/window_manager/native_viewport_event_dispatcher_impl.h"
 #include "services/window_manager/view_target.h"
-#include "services/window_manager/window_manager_impl.h"
 #include "services/window_manager/window_manager_delegate.h"
+#include "services/window_manager/window_manager_impl.h"
 #include "ui/base/accelerators/accelerator_manager.h"
 #include "ui/events/event_handler.h"
 
