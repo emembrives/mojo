@@ -87,7 +87,9 @@ void KioskWMController::Create(
 
 void KioskWMController::OnViewManagerDisconnected(
     mojo::ViewManager* view_manager) {
+  LOG(INFO) << "KioskWMController::OnViewManagerDisconnected";
   root_ = nullptr;
+  delete this;
 }
 
 void KioskWMController::OnViewDestroyed(mojo::View* view) {

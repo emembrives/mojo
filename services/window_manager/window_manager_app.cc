@@ -59,7 +59,6 @@ void WindowManagerApp::Create(
     mojo::InterfaceRequest<mojo::WindowManager> request) {
   scoped_ptr<WindowManagerRoot> wm_root(
       new WindowManagerRoot(app_impl_, connection, request.Pass()));
-  // FIXME(etiennej): manage lifetime of WindowManagerControllers.
   controller_factory_->CreateWindowManagerController(connection,
                                                      wm_root.release());
 }
