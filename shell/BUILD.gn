@@ -33,6 +33,7 @@ group("shell") {
 group("tests") {
   testonly = true
   deps = [
+    ":apptests",
     ":mojo_shell_tests",
     ":shell_nfc_apptests",
     "//shell/application_manager:mojo_application_manager_unittests",
@@ -48,12 +49,12 @@ if (is_android) {
 if (!mojo_use_prebuilt_mojo_shell) {
   shell_common_deps = [
     ":parent_lib",
-    "crash",
     "//base",
     "//base/allocator",
     "//build/config/sanitizers:deps",
-    "//mojo/common",
     "//mojo/environment:chromium",
+    "//mojo/message_pump",
+    "//shell/crash",
   ]
   shell_common_data_deps = [ ":mojo_shell_child" ]
 
@@ -99,9 +100,9 @@ if (!mojo_use_prebuilt_mojo_shell) {
       "//base",
       "//base/allocator",
       "//build/config/sanitizers:deps",
-      "//mojo/common",
       "//mojo/edk/system",
       "//mojo/environment:chromium",
+      "//mojo/message_pump",
     ]
   }
 }  # !mojo_use_prebuilt_mojo_shell
@@ -160,6 +161,7 @@ source_set("parent_lib") {
     "//mojo/application",
     "//mojo/common",
     "//mojo/common:tracing_impl",
+    "//mojo/data_pipe_utils",
     "//mojo/edk/system",
     "//mojo/public/cpp/bindings",
     "//mojo/public/interfaces/application",
@@ -215,7 +217,8 @@ source_set("native_application_support") {
 
   deps = [
     "//base",
-    "//mojo/gles2",
+    "//mojo/gles2:control_thunks",
+    "//mojo/gles2:gles2",
     "//mojo/gles2:mgl",
   ]
 
@@ -484,16 +487,17 @@ test("mojo_shell_tests") {
   deps = [
     ":parent_lib",
     "//base",
-    "//base:i18n",
     "//base/test:test_support",
-    "//testing/gtest",
-    "//url",
+    "//base:i18n",
     "//mojo/common",
     "//mojo/edk/system",
     "//mojo/environment:chromium",
+    "//mojo/message_pump",
     "//mojo/public/cpp/bindings",
     "//services/test_service:bindings",
     "//shell/application_manager",
+    "//testing/gtest",
+    "//url",
   ]
 
   data_deps = [
@@ -549,7 +553,7 @@ mojo_native_application("apptests") {
     "//base",
     "//mojo/application",
     "//mojo/application:test_support",
-    "//mojo/common:common",
+    "//mojo/data_pipe_utils",
     "//mojo/public/cpp/bindings:callback",
     "//mojo/public/cpp/environment",
     "//mojo/public/cpp/system:system",

@@ -6,7 +6,7 @@
 
 #include "base/callback.h"
 #include "base/trace_event/trace_event.h"
-#include "mojo/common/data_pipe_drainer.h"
+#include "mojo/data_pipe_utils/data_pipe_drainer.h"
 #include "tonic/dart_api_scope.h"
 #include "tonic/dart_converter.h"
 #include "tonic/dart_dependency_catcher.h"
@@ -193,7 +193,10 @@ class DartLibraryLoader::WatcherSignaler {
 DartLibraryLoader::DartLibraryLoader(DartState* dart_state)
     : dart_state_(dart_state),
       library_provider_(nullptr),
-      dependency_catcher_(nullptr) {
+      dependency_catcher_(nullptr),
+      magic_number_(nullptr),
+      magic_number_len_(0),
+      error_during_loading_(false) {
 }
 
 DartLibraryLoader::~DartLibraryLoader() {
@@ -272,6 +275,24 @@ Dart_Handle DartLibraryLoader::CanonicalizeURL(Dart_Handle library,
   return library_provider_->CanonicalizeURL(library, url);
 }
 
+const uint8_t* DartLibraryLoader::SniffForMagicNumber(
+    const uint8_t* text_buffer, intptr_t* buffer_len, bool* is_snapshot) {
+  if (magic_number_ == nullptr) {
+    *is_snapshot = false;
+    return text_buffer;
+  }
+  for (intptr_t i = 0; i < magic_number_len_; i++) {
+    if (text_buffer[i] != magic_number_[i]) {
+      *is_snapshot = false;
+      return text_buffer;
+    }
+  }
+  *is_snapshot = true;
+  DCHECK_GT(*buffer_len, magic_number_len_);
+  *buffer_len -= magic_number_len_;
+  return text_buffer + magic_number_len_;
+}
+
 void DartLibraryLoader::DidCompleteImportJob(
     ImportJob* job,
     const std::vector<uint8_t>& buffer) {
@@ -285,9 +306,17 @@ void DartLibraryLoader::DidCompleteImportJob(
   Dart_Handle result;
 
   if (job->load_script()) {
-    result = Dart_LoadScript(
-        StdStringToDart(job->name()),
-        Dart_NewStringFromUTF8(buffer.data(), buffer.size()), 0, 0);
+    // Sniff for magic number. Load script from snapshot if found.
+    const uint8_t* buf = buffer.data();
+    intptr_t len = buffer.size();
+    bool is_snapshot = false;
+    buf = SniffForMagicNumber(buf, &len, &is_snapshot);
+    if (is_snapshot) {
+      result = Dart_LoadScriptFromSnapshot(buf, len);
+    } else {
+      result = Dart_LoadScript(
+          StdStringToDart(job->name()), Dart_NewStringFromUTF8(buf, len), 0, 0);
+    }
   } else {
     result = Dart_LoadLibrary(
         StdStringToDart(job->name()),
@@ -297,6 +326,7 @@ void DartLibraryLoader::DidCompleteImportJob(
   if (Dart_IsError(result)) {
     LOG(ERROR) << "Error Loading " << job->name() << " "
         << Dart_GetError(result);
+    error_during_loading_ = true;
   }
 
   pending_libraries_.erase(job->name());
@@ -321,6 +351,7 @@ void DartLibraryLoader::DidCompleteSourceJob(
   if (Dart_IsError(result)) {
     LOG(ERROR) << "Error Loading " << job->name() << " "
         << Dart_GetError(result);
+    error_during_loading_ = true;
   }
 
   EraseUniquePtr<Job>(jobs_, job);
@@ -334,6 +365,7 @@ void DartLibraryLoader::DidFailJob(Job* job) {
 
   LOG(ERROR) << "Library Load failed: " << job->name();
   // TODO(eseidel): Call Dart_LibraryHandleError in the SourceJob case?
+  error_during_loading_ = true;
 
   EraseUniquePtr<Job>(jobs_, job);
 }

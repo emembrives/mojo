@@ -1,5 +1,6 @@
 # commonly generated files
 *.pyc
+*.mojom.dart
 *~
 .*.sw?
 .DS_Store
@@ -96,6 +97,7 @@ v8.log
 /mojo/common/dart/packages
 /mojo/dart/apptest/.packages
 /mojo/dart/apptest/packages
+/mojo/dart/apptest/pubspec.lock
 /mojo/dart/http_load_test/.packages
 /mojo/dart/http_load_test/bin/packages
 /mojo/dart/http_load_test/packages
@@ -114,6 +116,9 @@ v8.log
 /services/dart/test/pingpong/packages
 /services/dart/test/pingpong_target/.packages
 /services/dart/test/pingpong_target/packages
+/services/dart/test/service_test_interfaces/.packages
+/services/dart/test/service_test_interfaces/packages
+services/dart/test/service_test_interfaces/pubspec.lock
 
 # downloaded keyboard_native resources.
 /services/keyboard_native/res/*.png

@@ -7,7 +7,7 @@ library io_internet_address_apptests;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:apptest/apptest.dart';
+import 'package:mojo_apptest/apptest.dart';
 import 'package:mojo/application.dart';
 import 'package:mojo/bindings.dart';
 import 'package:mojo/core.dart';
@@ -32,6 +32,17 @@ tests(Application application, String url) {
                                        type:InternetAddressType.IP_V4);
       expect(result.length, greaterThan(0));
       expect(result[0], equals(InternetAddress.LOOPBACK_IP_V4));
+    });
+    test('Lookup IPv6', () async {
+      try {
+        var result =
+            await InternetAddress.lookup('localhost',
+                                         type:InternetAddressType.IP_V6);
+        expect(result.length, greaterThan(0));
+        expect(result[0], equals(InternetAddress.LOOPBACK_IP_V6));
+      } on OSError catch (e) {
+        expect(e.message, stringContainsInOrder(["ERR_NAME_NOT_RESOLVED"]));
+      }
     });
     test('Lookup ANY', () async {
       var result =

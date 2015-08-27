@@ -38,10 +38,4 @@ bool KioskWM::ConfigureIncomingConnection(
   return true;
 }
 
-bool KioskWM::ConfigureOutgoingConnection(
-    mojo::ApplicationConnection* connection) {
-  window_manager_app_->ConfigureOutgoingConnection(connection);
-  return true;
-}
-
 }  // namespace kiosk_wm

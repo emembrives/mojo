@@ -13,11 +13,11 @@
 #include "base/sys_info.h"
 #include "dart/runtime/include/dart_api.h"
 #include "dart/runtime/include/dart_native_api.h"
-#include "mojo/common/message_pump_mojo.h"
 #include "mojo/dart/embedder/builtin.h"
 #include "mojo/dart/embedder/dart_controller.h"
 #include "mojo/dart/embedder/mojo_dart_state.h"
 #include "mojo/dart/embedder/vmservice.h"
+#include "mojo/message_pump/message_pump_mojo.h"
 #include "mojo/public/c/system/core.h"
 #include "tonic/dart_converter.h"
 #include "tonic/dart_debugger.h"
@@ -39,6 +39,8 @@ static const char* kAsyncLibURL = "dart:async";
 static const char* kInternalLibURL = "dart:_internal";
 static const char* kIsolateLibURL = "dart:isolate";
 static const char* kCoreLibURL = "dart:core";
+
+static uint8_t snapshot_magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
 
 static Dart_Handle SetWorkingDirectory(Dart_Handle builtin_lib) {
   base::FilePath current_dir;
@@ -300,6 +302,8 @@ Dart_Isolate DartController::CreateIsolateHelper(
     } else {
       package_root_str = package_root.c_str();
     }
+    isolate_data->library_loader().set_magic_number(
+        snapshot_magic_number, sizeof(snapshot_magic_number));
     if (use_network_loader) {
       mojo::NetworkService* network_service = isolate_data->network_service();
       isolate_data->set_library_provider(
@@ -356,6 +360,13 @@ Dart_Isolate DartController::CreateIsolateHelper(
     }
 
     InitializeDartMojoIo();
+  }
+
+  if (isolate_data->library_loader().error_during_loading()) {
+    *error = strdup("Library loader reported error during loading. See log.");
+    Dart_EnterIsolate(isolate);
+    Dart_ShutdownIsolate();
+    return nullptr;
   }
 
   // Make the isolate runnable so that it is ready to handle messages.
@@ -638,7 +649,6 @@ void DartController::LoadEmptyScript(const std::string& script_uri) {
   DART_CHECK_VALID(result);
   tonic::LogIfError(Dart_FinalizeLoading(true));
 }
-
 
 bool DartController::RunSingleDartScript(const DartControllerConfig& config) {
   InitVmIfNeeded(config.entropy,

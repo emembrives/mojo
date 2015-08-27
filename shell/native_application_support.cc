@@ -7,9 +7,10 @@
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/logging.h"
+#include "mojo/public/platform/native/gles2_impl_chromium_bind_uniform_location_thunks.h"
+#include "mojo/public/platform/native/gles2_impl_chromium_map_sub_thunks.h"
 #include "mojo/public/platform/native/gles2_impl_chromium_miscellaneous_thunks.h"
 #include "mojo/public/platform/native/gles2_impl_chromium_resize_thunks.h"
-#include "mojo/public/platform/native/gles2_impl_chromium_sub_image_thunks.h"
 #include "mojo/public/platform/native/gles2_impl_chromium_sync_point_thunks.h"
 #include "mojo/public/platform/native/gles2_impl_chromium_texture_mailbox_thunks.h"
 #include "mojo/public/platform/native/gles2_impl_ext_debug_marker_thunks.h"
@@ -79,23 +80,25 @@ bool RunNativeApplication(
             app_library);
   SetThunks(&MojoMakeGLES2ImplThunks, "MojoSetGLES2ImplThunks",
             app_library);
-  SetThunks(MojoMakeGLES2ImplExtDebugMarkerThunks,
-            "MojoSetGLES2ImplExtDebugMarkerThunks", app_library);
-  SetThunks(MojoMakeGLES2ImplOcclusionQueryExtThunks,
-            "MojoSetGLES2ImplOcclusionQueryExtThunks", app_library);
-  SetThunks(MojoMakeGLES2ImplOesVertexArrayObjectThunks,
-            "MojoSetGLES2ImplOesVertexArrayObjectThunks", app_library);
+  SetThunks(MojoMakeGLES2ImplEXTDebugMarkerThunks,
+            "MojoSetGLES2ImplEXTDebugMarkerThunks", app_library);
+  SetThunks(MojoMakeGLES2ImplOcclusionQueryEXTThunks,
+            "MojoSetGLES2ImplOcclusionQueryEXTThunks", app_library);
+  SetThunks(MojoMakeGLES2ImplOESVertexArrayObjectThunks,
+            "MojoSetGLES2ImplOESVertexArrayObjectThunks", app_library);
   // "Chromium" extensions:
-  SetThunks(MojoMakeGLES2ImplChromiumMiscellaneousThunks,
-            "MojoSetGLES2ImplChromiumMiscellaneousThunks", app_library);
-  SetThunks(MojoMakeGLES2ImplChromiumResizeThunks,
-            "MojoSetGLES2ImplChromiumResizeThunks", app_library);
-  SetThunks(MojoMakeGLES2ImplChromiumSubImageThunks,
-            "MojoSetGLES2ImplChromiumSubImageThunks", app_library);
-  SetThunks(MojoMakeGLES2ImplChromiumSyncPointThunks,
-            "MojoSetGLES2ImplChromiumSyncPointThunks", app_library);
-  SetThunks(MojoMakeGLES2ImplChromiumTextureMailboxThunks,
-            "MojoSetGLES2ImplChromiumTextureMailboxThunks", app_library);
+  SetThunks(MojoMakeGLES2ImplCHROMIUMBindUniformLocationThunks,
+            "MojoSetGLES2ImplCHROMIUMBindUniformLocationThunks", app_library);
+  SetThunks(MojoMakeGLES2ImplCHROMIUMMapSubThunks,
+            "MojoSetGLES2ImplCHROMIUMMapSubThunks", app_library);
+  SetThunks(MojoMakeGLES2ImplCHROMIUMMiscellaneousThunks,
+            "MojoSetGLES2ImplCHROMIUMMiscellaneousThunks", app_library);
+  SetThunks(MojoMakeGLES2ImplCHROMIUMResizeThunks,
+            "MojoSetGLES2ImplCHROMIUMResizeThunks", app_library);
+  SetThunks(MojoMakeGLES2ImplCHROMIUMSyncPointThunks,
+            "MojoSetGLES2ImplCHROMIUMSyncPointThunks", app_library);
+  SetThunks(MojoMakeGLES2ImplCHROMIUMTextureMailboxThunks,
+            "MojoSetGLES2ImplCHROMIUMTextureMailboxThunks", app_library);
 
   if (SetThunks(MojoMakeMGLThunks, "MojoSetMGLThunks", app_library)) {
     // TODO(jamesr): We should only need to expose these on apps that need to

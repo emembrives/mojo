@@ -10,9 +10,9 @@
 #include "base/logging.h"
 #include "base/message_loop/message_loop.h"
 #include "base/path_service.h"
-#include "mojo/common/data_pipe_utils.h"
 #include "mojo/dart/embedder/dart_controller.h"
 #include "mojo/dart/embedder/mojo_dart_state.h"
+#include "mojo/data_pipe_utils/data_pipe_utils.h"
 #include "mojo/public/cpp/bindings/interface_request.h"
 #include "third_party/zlib/google/zip_reader.h"
 #include "url/gurl.h"
@@ -26,13 +26,20 @@ DartApp::DartApp(mojo::InterfaceRequest<Application> application_request,
                  bool strict)
     : application_request_(application_request.Pass()),
       application_dir_(application_dir) {
-  base::FilePath package_root = application_dir_.AppendASCII("packages");
-  base::FilePath entry_path = application_dir_.Append("lib/main.dart");
+  base::FilePath snapshot_path = application_dir_.Append("snapshot_blob.bin");
+
+  // Look for snapshot_blob.bin. If exists, then load from snapshot.
+  if (base::PathExists(snapshot_path)) {
+    config_.script_uri = snapshot_path.AsUTF8Unsafe();
+    config_.package_root = "";
+  } else {
+    LOG(ERROR) << "Dart entry point could not be found under: "
+               << application_dir_.AsUTF8Unsafe();
+    base::MessageLoop::current()->QuitWhenIdle();
+  }
 
   config_.application_data = reinterpret_cast<void*>(this);
   config_.strict_compilation = strict;
-  config_.script_uri = entry_path.AsUTF8Unsafe();
-  config_.package_root = package_root.AsUTF8Unsafe();
   config_.SetVmFlags(nullptr, 0);
 
   base::MessageLoop::current()->PostTask(FROM_HERE,

@@ -146,7 +146,7 @@ def remove_broken_symlink(path):
       pass
   else:
     if not os.path.exists(link_path):
-      os.unlink(path)
+      remove_if_exists(path)
 
 
 def remove_broken_symlinks(root_dir):
@@ -305,6 +305,13 @@ def main():
       target = os.path.join(args.package_root, package)
       if not os.path.exists(target):
         link(source, target)
+
+  # Copy generated bindings back to the source directory.
+  generated_bindings = list_files(lib_path, mojom_dart_filter)
+  for binding in generated_bindings:
+    lib_rel_path = os.path.relpath(binding, lib_path)
+    dest = os.path.join(common_source_prefix, 'lib', lib_rel_path)
+    copy(binding, dest)
 
   # Link dart-pkg/$package/packages to dart-pkg/packages
   link_if_possible(args.package_root, target_packages_dir)

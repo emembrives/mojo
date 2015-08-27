@@ -21,15 +21,15 @@ namespace view_manager {
 ViewManagerRootConnection::ViewManagerRootConnection(
     mojo::ApplicationImpl* application_impl,
     ViewManagerRootConnectionObserver* observer)
-    : app_impl_(application_impl), observer_(observer) {
-}
+    : app_impl_(application_impl), observer_(observer) {}
 
-ViewManagerRootConnection::~ViewManagerRootConnection() {}
+ViewManagerRootConnection::~ViewManagerRootConnection() {
+  observer_->OnCloseViewManagerRootConnection(this);
+}
 
 bool ViewManagerRootConnection::Init(mojo::ApplicationConnection* connection) {
   if (connection_manager_.get()) {
-    VLOG(1) << "ViewManager allows only one window manager connection.";
-    return false;
+    NOTREACHED() << "Only one incoming connection is allowed.";
   }
   // |connection| originates from the WindowManager. Let it connect directly
   // to the ViewManager and WindowManagerInternalClient.
@@ -37,8 +37,10 @@ bool ViewManagerRootConnection::Init(mojo::ApplicationConnection* connection) {
   connection->AddService<WindowManagerInternalClient>(this);
   connection->ConnectToService(&wm_internal_);
   // If no ServiceProvider has been sent, refuse the connection.
-  if (!wm_internal_)
+  if (!wm_internal_) {
+    delete this;
     return false;
+  }
   wm_internal_.set_connection_error_handler(
       base::Bind(&ViewManagerRootConnection::OnLostConnectionToWindowManager,
                  base::Unretained(this)));
@@ -53,7 +55,7 @@ bool ViewManagerRootConnection::Init(mojo::ApplicationConnection* connection) {
 }
 
 void ViewManagerRootConnection::OnLostConnectionToWindowManager() {
-  observer_->OnCloseViewManagerRootConnection(this);
+  delete this;
 }
 
 ClientConnection*

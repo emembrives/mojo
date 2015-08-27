@@ -6,11 +6,11 @@ library pingpong_apptests;
 
 import 'dart:async';
 
-import 'package:apptest/apptest.dart';
-import 'package:mojom/dart/test/pingpong_service.mojom.dart';
+import 'package:mojo_apptest/apptest.dart';
 import 'package:mojo/application.dart';
 import 'package:mojo/bindings.dart';
 import 'package:mojo/core.dart';
+import 'package:service_test_interfaces/test/pingpong_service.mojom.dart';
 
 class _TestingPingPongClient extends PingPongClient {
   final PingPongClientStub stub;
@@ -38,7 +38,7 @@ pingpongApptests(Application application, String url) {
     test('Ping Service To Pong Client', () async {
       var pingPongServiceProxy = new PingPongServiceProxy.unbound();
       application.connectToService(
-          "mojo:mojo_dart_pingpong_dartzip", pingPongServiceProxy);
+          "mojo:dart_pingpong", pingPongServiceProxy);
 
       var pingPongClient = new _TestingPingPongClient.unbound();
       pingPongServiceProxy.ptr.setClient(pingPongClient.stub);
@@ -61,10 +61,10 @@ pingpongApptests(Application application, String url) {
     test('Ping Target URL', () async {
       var pingPongServiceProxy = new PingPongServiceProxy.unbound();
       application.connectToService(
-          "mojo:mojo_dart_pingpong_dartzip", pingPongServiceProxy);
+          "mojo:dart_pingpong", pingPongServiceProxy);
 
       var r = await pingPongServiceProxy.ptr.pingTargetUrl(
-          "mojo:mojo_dart_pingpong_target_dartzip", 9);
+          "mojo:dart_pingpong_target", 9);
       expect(r.ok, equals(true));
 
       await pingPongServiceProxy.close();
@@ -75,11 +75,11 @@ pingpongApptests(Application application, String url) {
     test('Ping Target Service', () async {
       var pingPongServiceProxy = new PingPongServiceProxy.unbound();
       application.connectToService(
-          "mojo:mojo_dart_pingpong_dartzip", pingPongServiceProxy);
+          "mojo:dart_pingpong", pingPongServiceProxy);
 
       var targetServiceProxy = new PingPongServiceProxy.unbound();
       application.connectToService(
-          "mojo:mojo_dart_pingpong_target_dartzip", targetServiceProxy);
+          "mojo:dart_pingpong_target", targetServiceProxy);
 
       var r = await pingPongServiceProxy.ptr.pingTargetService(
           targetServiceProxy.impl, 9);
@@ -95,7 +95,7 @@ pingpongApptests(Application application, String url) {
     test('Get Target Service', () async {
       var pingPongServiceProxy = new PingPongServiceProxy.unbound();
       application.connectToService(
-          "mojo:mojo_dart_pingpong_dartzip", pingPongServiceProxy);
+          "mojo:dart_pingpong", pingPongServiceProxy);
 
       var targetServiceProxy = new PingPongServiceProxy.unbound();
       pingPongServiceProxy.ptr.getPingPongService(targetServiceProxy);

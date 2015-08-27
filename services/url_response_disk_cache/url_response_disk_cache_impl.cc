@@ -17,7 +17,7 @@
 #include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
 #include "base/trace_event/trace_event.h"
-#include "mojo/common/data_pipe_utils.h"
+#include "mojo/data_pipe_utils/data_pipe_utils.h"
 #include "mojo/public/cpp/application/application_connection.h"
 #include "mojo/public/cpp/bindings/lib/fixed_buffer.h"
 #include "services/url_response_disk_cache/url_response_disk_cache_entry.mojom.h"
@@ -37,18 +37,25 @@ const char kEtagHeader[] = "etag";
 const char kEntryName[] = "entry";
 const char kEntryTmpName[] = "entry.tmp";
 
+// TODO(darin): These Serialize / Deserialize methods should not live here.
+// They use private details of the bindings system. Instead, we should provide
+// these as helper functions under mojo/public/cpp/bindings/.
+
 template <typename T>
 void Serialize(T input, std::string* output) {
   typedef typename mojo::internal::WrapperTraits<T>::DataType DataType;
   size_t size = GetSerializedSize_(input);
-  mojo::internal::FixedBuffer buf(size);
+
+  output->clear();
+  output->resize(size);
+
+  mojo::internal::FixedBuffer buf;
+  buf.Initialize(&output->at(0), size);
+
   DataType data_type;
   Serialize_(input.Pass(), &buf, &data_type);
   std::vector<Handle> handles;
   data_type->EncodePointersAndHandles(&handles);
-  void* serialized_data = buf.Leak();
-  *output = std::string(static_cast<char*>(serialized_data), size);
-  free(serialized_data);
 }
 
 template <typename T>

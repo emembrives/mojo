@@ -38,18 +38,13 @@ BLACKLISTED_APPS = [
   "network_service_apptests.mojo",
 ]
 
-ARCHITECTURE_INDEPENDENT_FILES = [
-  # These are files other than *.mojo files which are part of our binary
-  # artifact scheme. These files must be architecture independent.
-  "obj/mojo/dart/apptest/apptest.dartzip",
-]
-
 
 def target(config):
   target_name = config.target_os + "-" + config.target_cpu
   if config.is_official_build:
     target_name += "-official"
   return target_name
+
 
 def find_apps_to_upload(build_dir):
   apps = []
@@ -63,15 +58,6 @@ def find_apps_to_upload(build_dir):
       continue
     apps.append(path)
   return apps
-
-
-def find_architecture_independent_files(build_dir):
-  existing_files = []
-  for path in ARCHITECTURE_INDEPENDENT_FILES:
-    joined_path = os.path.join(build_dir, path)
-    if os.path.isfile(joined_path):
-      existing_files.append(joined_path)
-  return existing_files
 
 
 def check_call(command_line, dry_run, **kwargs):
@@ -154,6 +140,36 @@ def upload_shell(config, dry_run, verbose):
   write_file_to_gs(version, latest_file, config, dry_run)
 
 
+def upload_dart_snapshotter(config, dry_run, verbose):
+  # Only built for Linux and Mac.
+  if not config.target_os in [Config.OS_LINUX, Config.OS_MAC]:
+    return
+
+  paths = Paths(config)
+  zipfile_name = target(config)
+  version = Version().version
+
+  dest = "gs://mojo/dart_snapshotter/" + version + "/" + zipfile_name + ".zip"
+  with tempfile.NamedTemporaryFile() as zip_file:
+    with zipfile.ZipFile(zip_file, 'w') as z:
+      dart_snapshotter_path = paths.target_dart_snapshotter_path
+      with open(dart_snapshotter_path) as dart_snapshotter_binary:
+        dart_snapshotter_filename = os.path.basename(dart_snapshotter_path)
+        zipinfo = zipfile.ZipInfo(dart_snapshotter_filename)
+        zipinfo.external_attr = 0777 << 16L
+        compress_type = zipfile.ZIP_DEFLATED
+        zipinfo.compress_type = compress_type
+        zipinfo.date_time = time.gmtime(os.path.getmtime(dart_snapshotter_path))
+        if verbose:
+          print "zipping %s" % dart_snapshotter_path
+        z.writestr(zipinfo, dart_snapshotter_binary.read())
+    upload(config, zip_file.name, dest, dry_run, gzip=False)
+
+  # Update the LATEST file to contain the version of the new binary.
+  latest_file = "gs://mojo/dart_snapshotter/%s/LATEST" % target(config)
+  write_file_to_gs(version, latest_file, config, dry_run)
+
+
 def upload_app(app_binary_path, config, dry_run):
   app_binary_name = os.path.basename(app_binary_path)
   version = Version().version
@@ -162,15 +178,6 @@ def upload_app(app_binary_path, config, dry_run):
 
   # Upload the new binary.
   upload(config, app_binary_path, gsutil_app_location, dry_run)
-
-
-def upload_file(file_path, config, dry_run):
-  file_binary_name = os.path.basename(file_path)
-  version = Version().version
-  gsutil_file_location = "gs://mojo/file/%s/%s" % (version, file_binary_name)
-
-  # Upload the new binary.
-  upload(config, file_path, gsutil_file_location, dry_run)
 
 
 def write_file_to_gs(file_contents, dest, config, dry_run):
@@ -221,12 +228,10 @@ def main():
   for app in apps_to_upload:
     upload_app(app, config, args.dry_run)
 
-  files_to_upload = find_architecture_independent_files(build_directory)
-  for file_to_upload in files_to_upload:
-    upload_file(file_to_upload, config, args.dry_run)
-
   upload_symbols(config, build_directory,
                  args.symbols_upload_url, args.dry_run)
+
+  upload_dart_snapshotter(config, args.dry_run, args.verbose)
 
   return 0
 

@@ -31,8 +31,6 @@ class KioskWM : public mojo::ApplicationDelegate,
   void Initialize(mojo::ApplicationImpl* app) override;
   bool ConfigureIncomingConnection(
       mojo::ApplicationConnection* connection) override;
-  bool ConfigureOutgoingConnection(
-      mojo::ApplicationConnection* connection) override;
 
   scoped_ptr<window_manager::WindowManagerApp> window_manager_app_;
   std::string default_url_;

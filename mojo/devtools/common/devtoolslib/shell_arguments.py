@@ -157,9 +157,12 @@ def _configure_dev_server(shell, shell_args, dev_server_config):
   Returns:
     The updated argument list.
   """
-  server_url = shell.serve_local_directories(dev_server_config.mappings)
+  port = dev_server_config.port if dev_server_config.port else 0
+  server_url = shell.serve_local_directories(dev_server_config.mappings,
+                                             port=port)
   shell_args.append('--map-origin=%s=%s' % (dev_server_config.host, server_url))
-  print "Configured %s locally to serve:" % (dev_server_config.host)
+  print "Configured %s locally at %s to serve:" % (dev_server_config.host,
+                                                   server_url)
   for mapping_prefix, mapping_path in dev_server_config.mappings:
     print "  /%s -> %s" % (mapping_prefix, mapping_path)
   return shell_args
@@ -190,7 +193,8 @@ def get_shell(shell_config, shell_args):
                          logcat_tags=shell_config.logcat_tags,
                          verbose_pipe=verbose_pipe)
 
-    device_status, error = shell.check_device()
+    device_status, error = shell.check_device(
+        require_root=shell_config.require_root)
     if not device_status:
       raise ShellConfigurationException('Device check failed: ' + error)
     if shell_config.shell_path:

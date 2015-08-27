@@ -19,8 +19,7 @@ using mojo::WindowManagerInternalClient;
 
 namespace view_manager {
 
-ViewManagerApp::ViewManagerApp() : app_impl_(nullptr) {
-}
+ViewManagerApp::ViewManagerApp() : app_impl_(nullptr) {}
 
 ViewManagerApp::~ViewManagerApp() {}
 
@@ -31,16 +30,15 @@ void ViewManagerApp::Initialize(ApplicationImpl* app) {
 
 bool ViewManagerApp::ConfigureIncomingConnection(
     ApplicationConnection* connection) {
-  // ViewManagerApp controls the lifetime of ViewManagerRootConnection. We keep
-  // a raw pointer in active_root_connections_ in order to be able to check and
-  // retrieve the object on closing.
+  // We keep a raw pointer in active_root_connections_ in order to be able to
+  // close the ViewManagerApp when all outstanding ViewManagerRootConnections
+  // are closed. ViewManagerRootConnection manages its own lifetime.
   ViewManagerRootConnection* root_connection =
       new ViewManagerRootConnection(app_impl_, this);
   if (root_connection->Init(connection)) {
     active_root_connections_.insert(root_connection);
     return true;
   } else {
-    delete root_connection;
     return false;
   }
 }
@@ -48,7 +46,6 @@ bool ViewManagerApp::ConfigureIncomingConnection(
 void ViewManagerApp::OnCloseViewManagerRootConnection(
     ViewManagerRootConnection* view_manager_root_connection) {
   active_root_connections_.erase(view_manager_root_connection);
-  delete view_manager_root_connection;
 
   if (active_root_connections_.size() == 0) {
     ApplicationImpl::Terminate();
