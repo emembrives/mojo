@@ -488,7 +488,7 @@ class WindowManager : public ApplicationDelegate,
 
   window_manager::WindowManagerController* CreateWindowManagerController(
       ApplicationConnection* connection,
-      window_manager::WindowManagerRoot* wm_root) {
+      window_manager::WindowManagerRoot* wm_root) override {
     return new WindowManagerController(shell_, app_, connection, wm_root);
   }
 

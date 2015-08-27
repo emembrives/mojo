@@ -113,6 +113,9 @@ class SimpleWM : public mojo::ApplicationDelegate,
   SimpleWM()
       : window_manager_app_(new window_manager::WindowManagerApp(this)) {}
 
+ protected:
+  ~SimpleWM() override {}
+
  private:
   // Overridden from mojo::ApplicationDelegate:
   void Initialize(mojo::ApplicationImpl* impl) override {

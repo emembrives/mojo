@@ -35,7 +35,7 @@ class WindowManagerControllerFactory {
  public:
   virtual WindowManagerController* CreateWindowManagerController(
       mojo::ApplicationConnection* connection,
-      WindowManagerRoot* wm_root_);
+      WindowManagerRoot* wm_root_) = 0;
 };
 
 }  // namespace mojo

@@ -11,8 +11,9 @@
 namespace kiosk_wm {
 
 KioskWM::KioskWM()
-    : window_manager_app_(new window_manager::WindowManagerApp(this)) {
-}
+    : window_manager_app_(new window_manager::WindowManagerApp(this)) {}
+
+KioskWM::~KioskWM() {}
 
 void KioskWM::Initialize(mojo::ApplicationImpl* app) {
   window_manager_app_->Initialize(app);
