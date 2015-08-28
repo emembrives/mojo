@@ -36,12 +36,10 @@ namespace window_manager {
 
 WindowManagerApp::WindowManagerApp(
     WindowManagerControllerFactory* controller_factory)
-    : app_impl_(nullptr), controller_factory_(controller_factory) {
-}
+    : app_impl_(nullptr), controller_factory_(controller_factory) {}
 
-WindowManagerApp::~WindowManagerApp() {
-  // FIXME(etiennej): Do something useful here.
-}
+WindowManagerApp::~WindowManagerApp() {}
+
 ////////////////////////////////////////////////////////////////////////////////
 // WindowManagerApp, ApplicationDelegate implementation:
 
@@ -60,6 +58,7 @@ void WindowManagerApp::Create(
     mojo::InterfaceRequest<mojo::WindowManager> request) {
   scoped_ptr<WindowManagerRoot> wm_root(
       new WindowManagerRoot(app_impl_, connection, request.Pass()));
+  // WindowManagerControllers manage their own lifetime.
   controller_factory_->CreateWindowManagerController(connection,
                                                      wm_root.release());
 }
