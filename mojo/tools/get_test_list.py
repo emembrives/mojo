@@ -90,6 +90,7 @@ def GetTestList(config, verbose_count=0):
                              "irt_mojo.nexe"),
                 os.path.join(build_dir, "clang_newlib_" + config.target_cpu,
                              "monacl_test.nexe")])
+      # TODO(smklein): Add an x86-specific nonsfi test here
 
   # C++ app tests:
   if ShouldRunTest(Config.TEST_TYPE_DEFAULT, "app"):
@@ -156,8 +157,9 @@ def GetTestList(config, verbose_count=0):
     AddEntry("Dart mojom package generate tests",
         [os.path.join("third_party", "dart-sdk", "dart-sdk", "bin", "dart"),
          "--checked",
-         "-p", os.path.join("mojo", "dart", "mojom", "packages"),
-         os.path.join("mojo", "dart", "mojom", "test", "generate_test.dart")])
+         "-p", os.path.join("mojo", "public", "dart", "mojom", "packages"),
+         os.path.join(
+           "mojo", "public", "dart", "mojom", "test", "generate_test.dart")])
 
   if target_os == Config.OS_LINUX:
     AddEntry("Dart snapshotter test",

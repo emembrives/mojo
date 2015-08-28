@@ -39,6 +39,10 @@ _MOJO_EXPOSED_EXTENSIONS = ["CHROMIUM_bind_uniform_location",
                             "CHROMIUM_sync_point",
                             "CHROMIUM_texture_mailbox",
                             "EXT_debug_marker",
+                            "EXT_discard_framebuffer",
+                            "EXT_multisampled_render_to_texture",
+                            "EXT_texture_storage",
+                            "KHR_blend_equation_advanced",
                             "OES_vertex_array_object",
                             "occlusion_query_EXT"]
 
@@ -2330,6 +2334,7 @@ _FUNCTION_INFO = {
     'gl_test_func': 'glFramebufferTexture2DMultisampleEXT',
     'expectation': False,
     'unit_test': False,
+    'extension': "EXT_multisampled_render_to_texture",
     'extension_flag': 'multisampled_render_to_texture',
     'trace_level': 1,
   },
@@ -2893,6 +2898,7 @@ _FUNCTION_INFO = {
     'gl_test_func': 'glRenderbufferStorageMultisampleEXT',
     'expectation': False,
     'unit_test': False,
+    'extension': "EXT_multisampled_render_to_texture",
     'extension_flag': 'multisampled_render_to_texture',
   },
   'ReadBuffer': {

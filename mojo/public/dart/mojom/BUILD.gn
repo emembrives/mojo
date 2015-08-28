@@ -2,15 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import("//mojo/public/dart/rules.gni")
+import("../rules.gni")
 
-dart_pkg("apptest") {
-  libs = [ "lib/apptest.dart" ]
+dart_pkg("mojom") {
+  libs = [ "lib/generate.dart" ]
   sources = [
+    "CHANGELOG.md",
+    "README.md",
+    "lib/src/options.dart",
+    "lib/src/utils.dart",
     "pubspec.yaml",
-  ]
-  deps = [
-    "//mojo/public/dart",
-    "//third_party/dart-pkg",
   ]
 }
