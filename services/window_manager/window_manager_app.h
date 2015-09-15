@@ -16,12 +16,14 @@ namespace window_manager {
 
 // Implements core window manager functionality that could conceivably be shared
 // across multiple window managers implementing superficially different user
-// experiences. Establishes communication with the view manager.
+// experiences.
 // A window manager wishing to use this core should create and own an instance
 // of this object. They may implement the associated ViewManager/WindowManager
 // delegate interfaces exposed by the view manager, this object provides the
 // canonical implementation of said interfaces but will call out to the wrapped
 // instances.
+// Window manager clients should request a WindowManager service to get a new
+// native window.
 class WindowManagerApp : public mojo::ApplicationDelegate,
                          public mojo::InterfaceFactory<mojo::WindowManager> {
  public:

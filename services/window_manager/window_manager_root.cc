@@ -52,13 +52,22 @@ struct WindowManagerRoot::PendingEmbed {
 WindowManagerRoot::WindowManagerRoot(
     mojo::ApplicationImpl* application_impl,
     mojo::ApplicationConnection* connection,
+    WindowManagerControllerFactory* controller_factory,
     mojo::InterfaceRequest<mojo::WindowManager> request)
     : application_impl_(application_impl),
       connection_(connection),
       request_(request.Pass()),
-      wrapped_view_manager_delegate_(nullptr),
-      window_manager_delegate_(nullptr),
-      root_(nullptr) {}
+      root_(nullptr) {
+  window_manager_controller_ =
+      controller_factory->CreateWindowManagerController(connection, this)
+          .Pass();
+  LaunchViewManager(application_impl_);
+
+  WindowManagerImpl* wm = new WindowManagerImpl(this, false);
+  wm->Bind(request_.PassMessagePipe());
+  // WindowManagerImpl is deleted when the connection has an error, or from our
+  // destructor.
+}
 
 WindowManagerRoot::~WindowManagerRoot() {
   // TODO(msw|sky): Should this destructor explicitly delete the ViewManager?
@@ -75,19 +84,6 @@ WindowManagerRoot::~WindowManagerRoot() {
   DCHECK(!root_);
 
   STLDeleteElements(&connections_);
-}
-
-void WindowManagerRoot::SetController(WindowManagerController* controller) {
-  // The delegates should only be set once.
-  DCHECK(!wrapped_view_manager_delegate_ && !window_manager_delegate_);
-  window_manager_delegate_ = controller;
-  wrapped_view_manager_delegate_ = controller;
-  LaunchViewManager(application_impl_);
-
-  WindowManagerImpl* wm = new WindowManagerImpl(this, false);
-  wm->Bind(request_.PassMessagePipe());
-  // WindowManagerImpl is deleted when the connection has an error, or from our
-  // destructor.
 }
 
 void WindowManagerRoot::AddConnection(WindowManagerImpl* connection) {
@@ -136,8 +132,8 @@ void WindowManagerRoot::Embed(
     mojo::InterfaceRequest<mojo::ServiceProvider> services,
     mojo::ServiceProviderPtr exposed_services) {
   if (view_manager()) {
-    window_manager_delegate_->Embed(url, services.Pass(),
-                                    exposed_services.Pass());
+    window_manager_controller_->Embed(url, services.Pass(),
+                                      exposed_services.Pass());
     return;
   }
   scoped_ptr<PendingEmbed> pending_embed(new PendingEmbed);
@@ -161,9 +157,9 @@ void WindowManagerRoot::OnEmbed(
 
   RegisterSubtree(root_);
 
-  if (wrapped_view_manager_delegate_) {
-    wrapped_view_manager_delegate_->OnEmbed(root, services.Pass(),
-                                            exposed_services.Pass());
+  if (window_manager_controller_.get()) {
+    window_manager_controller_->OnEmbed(root, services.Pass(),
+                                        exposed_services.Pass());
   }
 
   for (PendingEmbed* pending_embed : pending_embeds_) {
@@ -175,12 +171,9 @@ void WindowManagerRoot::OnEmbed(
 
 void WindowManagerRoot::OnViewManagerDisconnected(
     mojo::ViewManager* view_manager) {
-  if (wrapped_view_manager_delegate_)
-    wrapped_view_manager_delegate_->OnViewManagerDisconnected(view_manager);
-
-  base::MessageLoop* message_loop = base::MessageLoop::current();
-  if (message_loop && message_loop->is_running())
-    message_loop->Quit();
+  if (window_manager_controller_.get())
+    window_manager_controller_->OnViewManagerDisconnected(view_manager);
+  delete this;
 }
 
 bool WindowManagerRoot::OnPerformAction(mojo::View* view,

@@ -27,10 +27,12 @@ void KioskWM::Initialize(mojo::ApplicationImpl* app) {
   }
 }
 
-window_manager::WindowManagerController* KioskWM::CreateWindowManagerController(
+scoped_ptr<window_manager::WindowManagerController>
+KioskWM::CreateWindowManagerController(
     mojo::ApplicationConnection* connection,
     window_manager::WindowManagerRoot* wm_root) {
-  return new KioskWMController(wm_root, default_url_);
+  return scoped_ptr<window_manager::WindowManagerController>(
+      new KioskWMController(wm_root, default_url_));
 }
 
 bool KioskWM::ConfigureIncomingConnection(

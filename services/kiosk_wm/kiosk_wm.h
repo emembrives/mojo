@@ -23,7 +23,8 @@ class KioskWM : public mojo::ApplicationDelegate,
   ~KioskWM() override;
 
   // Overridden from window_manager::WindowManagerControllerFactory
-  window_manager::WindowManagerController* CreateWindowManagerController(
+  scoped_ptr<window_manager::WindowManagerController>
+  CreateWindowManagerController(
       mojo::ApplicationConnection* connection,
       window_manager::WindowManagerRoot* wm_root) override;
 

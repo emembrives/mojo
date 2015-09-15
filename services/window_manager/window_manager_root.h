@@ -40,14 +40,8 @@ class ViewEventDispatcher;
 class WindowManagerDelegate;
 class WindowManagerImpl;
 
-// Implements core window manager functionality that could conceivably be shared
-// across multiple window managers implementing superficially different user
-// experiences. Establishes communication with the view manager.
-// A window manager wishing to use this core should create and own an instance
-// of this object. They may implement the associated ViewManager/WindowManager
-// delegate interfaces exposed by the view manager, this object provides the
-// canonical implementation of said interfaces but will call out to the wrapped
-// instances.
+// Represents the root of a Mojo-managed window hierarchy. Each root has a
+// 1-to-1 link with a native platform window.
 class WindowManagerRoot
     : public mojo::ViewManagerDelegate,
       public mojo::ViewObserver,
@@ -60,10 +54,9 @@ class WindowManagerRoot
  public:
   WindowManagerRoot(mojo::ApplicationImpl* application_impl,
                     mojo::ApplicationConnection* connection,
+                    WindowManagerControllerFactory* controller_factory,
                     mojo::InterfaceRequest<mojo::WindowManager> request);
   ~WindowManagerRoot() override;
-
-  void SetController(WindowManagerController* controller);
 
   ViewEventDispatcher* event_dispatcher() {
     return view_event_dispatcher_.get();
@@ -174,6 +167,7 @@ class WindowManagerRoot
   mojo::ApplicationImpl* application_impl_;
   mojo::ApplicationConnection* connection_;
   mojo::InterfaceRequest<mojo::WindowManager> request_;
+  scoped_ptr<WindowManagerController> window_manager_controller_;
 
   ViewManagerDelegate* wrapped_view_manager_delegate_;
   WindowManagerDelegate* window_manager_delegate_;

@@ -131,10 +131,12 @@ class SimpleWM : public mojo::ApplicationDelegate,
     return true;
   }
 
-  window_manager::WindowManagerController* CreateWindowManagerController(
+  scoped_ptr<window_manager::WindowManagerController>
+  CreateWindowManagerController(
       mojo::ApplicationConnection* connection,
       window_manager::WindowManagerRoot* wm_root) override {
-    return new SimpleWMController(wm_root);
+    return scoped_ptr<window_manager::WindowManagerController>(
+        new SimpleWMController(wm_root));
   }
 
   scoped_ptr<window_manager::WindowManagerApp> window_manager_app_;

@@ -19,7 +19,6 @@ KioskWMController::KioskWMController(window_manager::WindowManagerRoot* wm_root,
       navigator_host_(this),
       weak_factory_(this) {
   exposed_services_impl_.AddService(this);
-  window_manager_root_->SetController(this);
 }
 
 KioskWMController::~KioskWMController() {}

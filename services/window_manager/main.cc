@@ -27,9 +27,7 @@ namespace window_manager {
 class DefaultWindowManagerController : public WindowManagerController {
  public:
   DefaultWindowManagerController(WindowManagerRoot* wm_root)
-      : window_manager_root_(wm_root), root_(nullptr), window_offset_(10) {
-    window_manager_root_->SetController(this);
-  }
+      : window_manager_root_(wm_root), root_(nullptr), window_offset_(10) {}
 
   ~DefaultWindowManagerController() override {}
 
@@ -88,10 +86,11 @@ class DefaultWindowManager : public mojo::ApplicationDelegate,
     return true;
   }
 
-  WindowManagerController* CreateWindowManagerController(
+  scoped_ptr<WindowManagerController> CreateWindowManagerController(
       mojo::ApplicationConnection* connection,
       window_manager::WindowManagerRoot* wm_root) override {
-    return new DefaultWindowManagerController(wm_root);
+    return scoped_ptr<WindowManagerController>(
+        new DefaultWindowManagerController(wm_root));
   }
 
  private:

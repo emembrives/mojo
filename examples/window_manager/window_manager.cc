@@ -218,7 +218,6 @@ class WindowManagerController
         navigation_target_(TARGET_DEFAULT),
         app_(app),
         binding_(this) {
-    window_manager_root_->SetController(this);
     connection->AddService<::examples::IWindowManager>(this);
   }
 
@@ -462,7 +461,7 @@ class WindowManagerController
   scoped_ptr<RootLayoutManager> root_layout_manager_;
   ServiceProviderImpl control_panel_exposed_services_impl_;
 
-  scoped_ptr<window_manager::WindowManagerRoot> window_manager_root_;
+  window_manager::WindowManagerRoot* window_manager_root_;
 
   // Id of the view most content is added to.
   Id content_view_id_;
@@ -486,10 +485,12 @@ class WindowManager : public ApplicationDelegate,
   WindowManager()
       : window_manager_app_(new window_manager::WindowManagerApp(this)) {}
 
-  window_manager::WindowManagerController* CreateWindowManagerController(
+  scoped_ptr<window_manager::WindowManagerController>
+  CreateWindowManagerController(
       ApplicationConnection* connection,
       window_manager::WindowManagerRoot* wm_root) override {
-    return new WindowManagerController(shell_, app_, connection, wm_root);
+    return scoped_ptr<WindowManagerController>(
+        new WindowManagerController(shell_, app_, connection, wm_root));
   }
 
  private:

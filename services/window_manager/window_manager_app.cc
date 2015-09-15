@@ -56,11 +56,9 @@ bool WindowManagerApp::ConfigureIncomingConnection(
 void WindowManagerApp::Create(
     ApplicationConnection* connection,
     mojo::InterfaceRequest<mojo::WindowManager> request) {
-  scoped_ptr<WindowManagerRoot> wm_root(
-      new WindowManagerRoot(app_impl_, connection, request.Pass()));
-  // WindowManagerControllers manage their own lifetime.
-  controller_factory_->CreateWindowManagerController(connection,
-                                                     wm_root.release());
+  // WindowManagerRoot manages its own lifetime.
+  new WindowManagerRoot(app_impl_, connection, controller_factory_,
+                        request.Pass());
 }
 
 }  // namespace window_manager
