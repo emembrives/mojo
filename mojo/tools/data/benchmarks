@@ -3,20 +3,22 @@
 
 benchmarks = [
   {
-    'name': 'Trace me',
-    'app': 'https://core.mojoapps.io/trace_me.mojo',
+    'name': 'Dart app initialization',
+    'app': 'https://core.mojoapps.io/dart_traced_application.mojo',
     'duration': 10,
     'measurements': [
-      'time_until/trace_me/DoWork',
-      'avg_duration/trace_me/DoWork',
+      'time_until/traced_application/initialized',
     ]
   },
   {
-    'name': 'Spinning cube',
-    'app': 'https://core.mojoapps.io/spinning_cube.mojo',
+    'name': 'C++ app initialization',
+    'app': 'https://core.mojoapps.io/trace_me.mojo',
     'duration': 10,
     'measurements': [
-      'time_until/gpu/GpuScheduler:PutChanged',
+      'time_until/trace_me/initialized',
+    ],
+    'shell-args': [
+      '--args-for=https://core.mojoapps.io/trace_me.mojo --early-tracing',
     ]
   },
 ]

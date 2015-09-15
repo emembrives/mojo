@@ -28,6 +28,7 @@ class Shell;
 
 class MotermView : public mojo::ViewObserver,
                    public GlHelper::Client,
+                   public MotermModel::Delegate,
                    public MotermDriver::Client,
                    public mojo::InterfaceFactory<mojo::terminal::Terminal>,
                    public mojo::terminal::Terminal {
@@ -50,6 +51,10 @@ class MotermView : public mojo::ViewObserver,
   void OnSurfaceIdChanged(mojo::SurfaceIdPtr surface_id) override;
   void OnContextLost() override;
   void OnFrameDisplayed(uint32_t frame_id) override;
+
+  // |MotermModel::Delegate|:
+  void OnResponse(const void* buf, size_t size) override;
+  void OnSetKeypadMode(bool application_mode) override;
 
   // |MotermDriver::Client|:
   void OnDataReceived(const void* bytes, size_t num_bytes) override;
@@ -113,6 +118,9 @@ class MotermView : public mojo::ViewObserver,
   int advance_width_;
 
   skia::RefPtr<SkBitmapDevice> bitmap_device_;
+
+  // Keyboard state.
+  bool keypad_application_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(MotermView);
 };

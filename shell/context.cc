@@ -28,6 +28,7 @@
 #include "mojo/public/cpp/application/application_connection.h"
 #include "mojo/public/cpp/application/application_delegate.h"
 #include "mojo/public/cpp/application/application_impl.h"
+#include "mojo/public/cpp/bindings/strong_binding.h"
 #include "mojo/services/tracing/public/interfaces/tracing.mojom.h"
 #include "shell/application_manager/application_loader.h"
 #include "shell/application_manager/application_manager.h"
@@ -302,6 +303,13 @@ bool Context::InitWithPaths(const base::FilePath& shell_child_path) {
 
   InitContentHandlers(&application_manager_, command_line);
   InitNativeOptions(&application_manager_, command_line);
+
+  // The mojo_shell --args-for command-line switch is handled specially because
+  // it can appear more than once. The base::CommandLine class collapses
+  // multiple occurrences of the same switch.
+  base::CommandLine* current = base::CommandLine::ForCurrentProcess();
+  for (size_t i = 1; i < current->argv().size(); ++i)
+    ApplyApplicationArgs(this, current->argv()[i]);
 
   ServiceProviderPtr tracing_services;
   ServiceProviderPtr tracing_exposed_services;

@@ -29,13 +29,14 @@ class TestUsingTracingApp extends Application {
     // This sets up a connection between this application and the Mojo
     // tracing service.
     _tracing = new TracingHelper(this, "example_traced_application");
+    _tracing.traceInstant("initialized", "traced_application");
 
     // Now we schedule some random work just so we have something to trace.
     new Timer.periodic(new Duration(seconds: 1), (t) => function1());
   }
 
   void function1() {
-    var trace = _tracing.beginFunction("function1");
+    var trace = _tracing.beginFunction("function1", "traced_application");
     waitForMilliseconds(100);
     function2(42);
     waitForMilliseconds(100);
@@ -43,7 +44,8 @@ class TestUsingTracingApp extends Application {
   }
 
   void function2(int x) {
-    var trace = _tracing.beginFunction("function2", args: {"x": x});
+    var trace = _tracing.beginFunction("function2", "traced_application",
+        args: {"x": x});
     waitForMilliseconds(200);
     assert(identity(42) == 42);
     assert(fourtyTwo() == 42);
@@ -53,28 +55,28 @@ class TestUsingTracingApp extends Application {
   }
 
   int identity(int x) {
-    return _tracing.trace("identity", () {
+    return _tracing.trace("identity", "traced_application", () {
       waitForMilliseconds(10);
       return x;
     });
   }
 
   int addOne(int x) {
-    return _tracing.trace("add1", () {
+    return _tracing.trace("add1", "traced_application", () {
       waitForMilliseconds(10);
       return x + 1;
     }, args: {"x": x});
   }
 
   int fourtyTwo() {
-    return _tracing.trace("fourtyTwo", () {
+    return _tracing.trace("fourtyTwo", "traced_application", () {
       waitForMilliseconds(10);
       return 42;
     });
   }
 
   void doNothing() {
-    _tracing.trace("doNothing", () {
+    _tracing.trace("doNothing", "traced_application", () {
       waitForMilliseconds(10);
     });
   }
@@ -82,8 +84,9 @@ class TestUsingTracingApp extends Application {
 
 // Uses Mojo's wait() method in order to let time pass.
 void waitForMilliseconds(int milliseconds) {
-  (new MojoMessagePipe()).endpoints[0].handle.wait(
-      MojoHandleSignals.kReadable, milliseconds * 1000);
+  (new MojoMessagePipe()).endpoints[0]
+      .handle
+      .wait(MojoHandleSignals.kReadable, milliseconds * 1000);
 }
 
 main(List args) {

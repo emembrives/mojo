@@ -21,7 +21,7 @@ import 'package:mojo_services/tracing/tracing.mojom.dart';
 // to perform tracing.
 class TracingHelper {
   TraceProviderImpl _impl;
-  String _tid;
+  int _tid;
 
   // Construct an instance of TracingHelper from within your application's
   // |initialize()| method. |appName| will be used to form a thread identifier
@@ -34,54 +34,53 @@ class TracingHelper {
     if (appName.length > 20) {
       appName = appName.substring(appName.length - 20);
     }
-    _tid = "${appName}/${Isolate.current.hashCode.toString()}";
+    _tid = appName.hashCode ^ Isolate.current.hashCode;
+
+    _impl = new TraceProviderImpl();
     ApplicationConnection connection = app.connectToApplication("mojo:tracing");
     connection.provideService(TraceProviderName, (e) {
-      assert(_impl == null);
-      _impl = new TraceProviderImpl.fromEndpoint(e);
+      _impl.connect(e);
     });
-  }
-
-  bool isActive() {
-    return (_impl != null) && _impl.isActive();
   }
 
   // Invoke this at the beginning of a function whose duration you wish to
   // trace. Invoke |end()| on the returned object.
-  FunctionTrace beginFunction(String functionName, {Map<String, String> args}) {
-    assert(functionName != null);
-    if (isActive()) {
-      _sendTraceMessage(functionName, "B", args: args);
-    } else {
-      functionName = null;
-    }
-    return new _FunctionTraceImpl(this, functionName);
-  }
-
-  void _endFunction(String functionName) {
-    _sendTraceMessage(functionName, "E");
-  }
-
-  void _sendTraceMessage(String name, String phase,
+  FunctionTrace beginFunction(String functionName, String categories,
       {Map<String, String> args}) {
-    if (isActive()) {
-      var map = {};
-      map["name"] = name;
-      map["ph"] = phase;
-      map["ts"] = getTimeTicksNow();
-      map["pid"] = pid;
-      map["tid"] = _tid;
-      if (args != null) {
-        map["args"] = args;
-      }
-      _impl.sendTraceMessage(JSON.encode(map));
+    assert(functionName != null);
+    _sendTraceMessage(functionName, categories, "B", args: args);
+    return new _FunctionTraceImpl(this, functionName, categories);
+  }
+
+  void _endFunction(String functionName, String categories) {
+    _sendTraceMessage(functionName, categories, "E");
+  }
+
+  void traceInstant(String name, String categories,
+      {Map<String, String> args}) {
+    _sendTraceMessage(name, categories, "I", args: args);
+  }
+
+  void _sendTraceMessage(String name, String categories, String phase,
+      {Map<String, String> args}) {
+    var map = {};
+    map["name"] = name;
+    map["cat"] = categories;
+    map["ph"] = phase;
+    map["ts"] = getTimeTicksNow();
+    map["pid"] = pid;
+    map["tid"] = _tid;
+    if (args != null) {
+      map["args"] = args;
     }
+    _impl.sendTraceMessage(JSON.encode(map));
   }
 
   // A convenience method that wraps a closure in a begin-end pair of
   // tracing calls.
-  dynamic trace(String functionName, closure(), {Map<String, String> args}) {
-    FunctionTrace ft = beginFunction(functionName, args: args);
+  dynamic trace(String functionName, String categories, closure(),
+      {Map<String, String> args}) {
+    FunctionTrace ft = beginFunction(functionName, categories, args: args);
     final returnValue = closure();
     ft.end();
     return returnValue;
@@ -97,13 +96,14 @@ abstract class FunctionTrace {
 class _FunctionTraceImpl implements FunctionTrace {
   TracingHelper _tracing;
   String _functionName;
+  String _categories;
 
-  _FunctionTraceImpl(this._tracing, this._functionName);
+  _FunctionTraceImpl(this._tracing, this._functionName, this._categories);
 
   @override
   void end() {
     if (_functionName != null) {
-      _tracing._endFunction(_functionName);
+      _tracing._endFunction(_functionName, _categories);
     }
   }
 }

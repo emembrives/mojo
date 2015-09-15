@@ -57,12 +57,13 @@ MotermView::MotermView(
                  kTextureFormat,
                  false,
                  RectToSize(view->bounds())),
-      model_(MotermModel::Size(240, 160), MotermModel::Size(24, 80)),
+      model_(MotermModel::Size(240, 160), MotermModel::Size(24, 80), this),
       frame_pending_(false),
       force_next_draw_(false),
       ascent_(0),
       line_height_(0),
-      advance_width_(0) {
+      advance_width_(0),
+      keypad_application_mode_(false) {
   // TODO(vtl): |service_provider_impl_|'s ctor doesn't like an invalid request,
   // so we have to conditionally, explicitly bind.
   if (service_provider_request.is_pending()) {
@@ -133,6 +134,15 @@ void MotermView::OnFrameDisplayed(uint32_t frame_id) {
   DCHECK(frame_pending_);
   frame_pending_ = false;
   Draw(false);
+}
+
+void MotermView::OnResponse(const void* buf, size_t size) {
+  if (driver_)
+    driver_->SendData(buf, size);
+}
+
+void MotermView::OnSetKeypadMode(bool application_mode) {
+  keypad_application_mode_ = application_mode;
 }
 
 void MotermView::OnDataReceived(const void* bytes, size_t num_bytes) {
@@ -304,19 +314,21 @@ void MotermView::Draw(bool force) {
     }
   }
 
-  // Draw the cursor.
-  MotermModel::Position cursor_pos = model_.GetCursorPosition();
-  // Reuse the background paint, but don't just paint over.
-  // TODO(vtl): Consider doing other things. Maybe make it blink, to be extra
-  // annoying.
-  // TODO(vtl): Maybe vary how we draw the cursor, depending on if we're focused
-  // and/or active.
-  bg_paint.setColor(SK_ColorWHITE);
-  bg_paint.setXfermodeMode(SkXfermode::kDifference_Mode);
-  canvas.drawRect(SkRect::MakeXYWH(cursor_pos.column * advance_width_,
-                                   cursor_pos.row * line_height_,
-                                   advance_width_, line_height_),
-                  bg_paint);
+  if (model_.GetCursorVisibility()) {
+    // Draw the cursor.
+    MotermModel::Position cursor_pos = model_.GetCursorPosition();
+    // Reuse the background paint, but don't just paint over.
+    // TODO(vtl): Consider doing other things. Maybe make it blink, to be extra
+    // annoying.
+    // TODO(vtl): Maybe vary how we draw the cursor, depending on if we're
+    // focused and/or active.
+    bg_paint.setColor(SK_ColorWHITE);
+    bg_paint.setXfermodeMode(SkXfermode::kDifference_Mode);
+    canvas.drawRect(SkRect::MakeXYWH(cursor_pos.column * advance_width_,
+                                     cursor_pos.row * line_height_,
+                                     advance_width_, line_height_),
+                    bg_paint);
+  }
 
   canvas.flush();
 
@@ -333,7 +345,8 @@ void MotermView::Draw(bool force) {
 }
 
 void MotermView::OnKeyPressed(const mojo::EventPtr& key_event) {
-  std::string input_sequence = GetInputSequenceForKeyPressedEvent(*key_event);
+  std::string input_sequence =
+      GetInputSequenceForKeyPressedEvent(*key_event, keypad_application_mode_);
   if (input_sequence.empty())
     return;
 

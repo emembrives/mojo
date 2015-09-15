@@ -91,23 +91,40 @@ class MotermModel {
   };
 
   struct StateChanges {
-    StateChanges() : cursor_moved(false), bell_count(0), dirty_rect() {}
+    StateChanges() : cursor_changed(false), bell_count(0), dirty_rect() {}
 
     bool IsDirty() const {
-      return cursor_moved || bell_count > 0 || !dirty_rect.IsEmpty();
+      return cursor_changed || bell_count > 0 || !dirty_rect.IsEmpty();
     }
     void Reset() { *this = StateChanges(); }
 
-    bool cursor_moved;
+    bool cursor_changed;  // Moved or changed visibility.
     unsigned bell_count;
     Rectangle dirty_rect;
+  };
+
+  class Delegate {
+   public:
+    // Called when a response is received (i.e., the terminal wants to put data
+    // into the input stream).
+    virtual void OnResponse(const void* buf, size_t size) = 0;
+    // Called for ESC > (false) and ESC = (true).
+    virtual void OnSetKeypadMode(bool application_mode) = 0;
+
+   protected:
+    Delegate() {}
+    virtual ~Delegate() {}
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(Delegate);
   };
 
   // Maximum number of rows/columns.
   static const unsigned kMaxRows = 500;  // TODO(vtl): Made up number.
   static const unsigned kMaxColumns = T_NUMCOL;
 
-  MotermModel(const Size& max_size, const Size& size);
+  // If non-null, |delegate| must outlive this object.
+  MotermModel(const Size& max_size, const Size& size, Delegate* delegate);
   ~MotermModel();
 
   // Process the given input bytes, reporting (additional) state changes to
@@ -119,6 +136,7 @@ class MotermModel {
 
   Size GetSize() const;
   Position GetCursorPosition() const;
+  bool GetCursorVisibility() const;
   CharacterInfo GetCharacterInfoAt(const Position& position) const;
 
   void SetSize(const Size& size, bool reset);
@@ -162,9 +180,11 @@ class MotermModel {
   static void OnRespondThunk(void* ctx, const void* buf, size_t size);
 
   const Size max_size_;
+  Delegate* const delegate_;
 
   scoped_ptr<teken_char_t[]> characters_;
   scoped_ptr<teken_attr_t[]> attributes_;
+  bool cursor_visible_;
 
   teken_t terminal_;
 

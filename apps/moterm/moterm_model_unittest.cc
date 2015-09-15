@@ -4,6 +4,7 @@
 
 #include "apps/moterm/moterm_model.h"
 
+#include "base/logging.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 namespace {
@@ -100,21 +101,21 @@ TEST(MotermModelTest, CharacterInfo) {
 
 TEST(MotermModelTest, StateChanges) {
   MotermModel::StateChanges state_changes;
-  EXPECT_FALSE(state_changes.cursor_moved);
+  EXPECT_FALSE(state_changes.cursor_changed);
   EXPECT_EQ(0u, state_changes.bell_count);
   EXPECT_TRUE(state_changes.dirty_rect.IsEmpty());
   EXPECT_FALSE(state_changes.IsDirty());
   // Should be the same after reset.
   state_changes.Reset();
-  EXPECT_FALSE(state_changes.cursor_moved);
+  EXPECT_FALSE(state_changes.cursor_changed);
   EXPECT_EQ(0u, state_changes.bell_count);
   EXPECT_TRUE(state_changes.dirty_rect.IsEmpty());
   EXPECT_FALSE(state_changes.IsDirty());
 
-  state_changes.cursor_moved = true;
+  state_changes.cursor_changed = true;
   EXPECT_TRUE(state_changes.IsDirty());
   state_changes.Reset();
-  EXPECT_FALSE(state_changes.cursor_moved);
+  EXPECT_FALSE(state_changes.cursor_changed);
   EXPECT_FALSE(state_changes.IsDirty());
 
   state_changes.bell_count++;
@@ -131,16 +132,18 @@ TEST(MotermModelTest, StateChanges) {
 }
 
 TEST(MotermModelTest, Basic) {
-  MotermModel model(MotermModel::Size(43, 132), MotermModel::Size(25, 80));
+  MotermModel model(MotermModel::Size(43, 132), MotermModel::Size(25, 80),
+                    nullptr);
 
   MotermModel::Size size = model.GetSize();
   EXPECT_EQ(25u, size.rows);
   EXPECT_EQ(80u, size.columns);
 
-  // The cursor should start out at the upper-left.
+  // The cursor should start out at the upper-left (and be visible).
   MotermModel::Position cursor_pos = model.GetCursorPosition();
   EXPECT_EQ(0, cursor_pos.row);
   EXPECT_EQ(0, cursor_pos.column);
+  EXPECT_TRUE(model.GetCursorVisibility());
 
   MotermModel::StateChanges state_changes;
   EXPECT_FALSE(state_changes.IsDirty());
@@ -149,7 +152,7 @@ TEST(MotermModelTest, Basic) {
   static const char kXYZ[] = "\x1b[1;32;41mXYZ";
   model.ProcessInput(kXYZ, sizeof(kXYZ) - 1, &state_changes);
   EXPECT_TRUE(state_changes.IsDirty());
-  EXPECT_TRUE(state_changes.cursor_moved);
+  EXPECT_TRUE(state_changes.cursor_changed);
   EXPECT_EQ(0u, state_changes.bell_count);
   EXPECT_FALSE(state_changes.dirty_rect.IsEmpty());
   // The model has some flexibility in the size of the dirty rectangle (it may
@@ -185,7 +188,7 @@ TEST(MotermModelTest, Basic) {
   static const char kBellBellBell[] = "\a\a\a";
   model.ProcessInput(kBellBellBell, sizeof(kBellBellBell) - 1, &state_changes);
   EXPECT_TRUE(state_changes.IsDirty());
-  EXPECT_FALSE(state_changes.cursor_moved);
+  EXPECT_FALSE(state_changes.cursor_changed);
   EXPECT_EQ(3u, state_changes.bell_count);
   EXPECT_TRUE(state_changes.dirty_rect.IsEmpty());
 
@@ -199,5 +202,83 @@ TEST(MotermModelTest, Basic) {
   EXPECT_EQ(40u, size.rows);
   EXPECT_EQ(100u, size.columns);
 }
+
+TEST(MotermModelTest, ShowHideCursor) {
+  MotermModel model(MotermModel::Size(43, 132), MotermModel::Size(25, 80),
+                    nullptr);
+
+  // The cursor should start visible.
+  EXPECT_TRUE(model.GetCursorVisibility());
+
+  MotermModel::StateChanges state_changes;
+
+  // Note: A lot of sources on the web have show/hide backwards!
+  static const char kHideCursor[] = "\x1b[?25l";
+  model.ProcessInput(kHideCursor, sizeof(kHideCursor) - 1, &state_changes);
+
+  EXPECT_TRUE(state_changes.IsDirty());
+  EXPECT_TRUE(state_changes.cursor_changed);
+  EXPECT_FALSE(model.GetCursorVisibility());
+
+  state_changes.Reset();
+
+  static const char kShowCursor[] = "\x1b[?25h";
+  model.ProcessInput(kShowCursor, sizeof(kShowCursor) - 1, &state_changes);
+
+  EXPECT_TRUE(state_changes.IsDirty());
+  EXPECT_TRUE(state_changes.cursor_changed);
+  EXPECT_TRUE(model.GetCursorVisibility());
+}
+
+class SetResetKeypadModeTestDelegate : public MotermModel::Delegate {
+ public:
+  SetResetKeypadModeTestDelegate() {}
+  ~SetResetKeypadModeTestDelegate() override {}
+
+  void OnResponse(const void* buf, size_t size) override { CHECK(false); }
+  void OnSetKeypadMode(bool application_mode) override {
+    call_count_++;
+    last_application_mode_ = application_mode;
+  }
+
+  int call_count() const { return call_count_; }
+  bool last_application_mode() const { return last_application_mode_; }
+
+ private:
+  int call_count_ = 0;
+  bool last_application_mode_ = false;
+};
+
+TEST(MotermModelTest, SetResetKeypadMode) {
+  SetResetKeypadModeTestDelegate test_delegate;
+
+  MotermModel model(MotermModel::Size(43, 132), MotermModel::Size(25, 80),
+                    &test_delegate);
+
+  ASSERT_EQ(0, test_delegate.call_count());
+  ASSERT_FALSE(test_delegate.last_application_mode());
+
+  MotermModel::StateChanges state_changes;
+
+  static const char kSetKeypadAppMode[] = "\x1b=";
+  model.ProcessInput(kSetKeypadAppMode, sizeof(kSetKeypadAppMode) - 1,
+                     &state_changes);
+
+  EXPECT_FALSE(state_changes.IsDirty());
+  EXPECT_EQ(1, test_delegate.call_count());
+  EXPECT_TRUE(test_delegate.last_application_mode());
+
+  state_changes.Reset();
+
+  static const char kResetKeypadAppMode[] = "\x1b>";
+  model.ProcessInput(kResetKeypadAppMode, sizeof(kResetKeypadAppMode) - 1,
+                     &state_changes);
+
+  EXPECT_FALSE(state_changes.IsDirty());
+  EXPECT_EQ(2, test_delegate.call_count());
+  EXPECT_FALSE(test_delegate.last_application_mode());
+};
+
+// TODO(vtl): Test responses.
 
 }  // namespace

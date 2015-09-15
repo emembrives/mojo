@@ -20,18 +20,34 @@ if (!is_nacl) {
     data_deps = [ "//nacl_bindings:irt_mojo(//native_client/build/toolchain/nacl:irt_${target_cpu})" ]
   }
 
-  executable("monacl_shell_nonsfi") {
-    testonly = true
-    sources = [
-      "monacl_shell_nonsfi.cc",
-    ]
-    deps = [
-      "//mojo/edk/system",
-      "//mojo/public/c/system",
-      "//mojo/public/platform/nacl:mojo_irt_header",
-      "//native_client/src/nonsfi/irt:irt_interfaces",
-      "//native_client/src/nonsfi/loader:elf_loader",
-    ]
+  if (current_cpu == "x86") {
+    # Non-SFI NaCl currently supports x86-32 but not x86-64. Additionally,
+    # PNaCl pexes assume 32-bit pointers.
+    executable("monacl_shell_nonsfi") {
+      testonly = true
+      sources = [
+        "monacl_shell_nonsfi.cc",
+      ]
+      deps = [
+        ":irt_mojo_nonsfi",
+        "//mojo/edk/system",
+        "//native_client/src/nonsfi/loader:elf_loader",
+      ]
+    }
+  }
+}
+
+group("monacl_shell_nonsfi_x86") {
+  testonly = true
+  deps = []
+  if ((target_cpu == "x64" || target_cpu == "x86") && is_linux) {
+    # Even when Mojo is built for x86-64 by default, we want to use x86-32
+    # for running programs under Non-SFI NaCl.
+    # The toolchain is hardcoded as 32-bit clang here -- although it must
+    # be 32 bit (for nonsfi), it assumes clang. Ideally, the toolchain would
+    # be defined as the 32 bit variant of whatever is being used (be it clang,
+    # gcc, or something else).
+    deps += [ ":monacl_shell_nonsfi(//build/toolchain/linux:clang_x86)" ]
   }
 }
 
@@ -62,9 +78,7 @@ if (is_nacl) {
       "//services/clipboard",
       "//services/clipboard:apptests",
       "//services/files:apptests",
-
-      # TODO(ncbray): enable when NaCl has pthread rw locks.
-      #"//services/http_server",
+      "//services/http_server",
       "//services/http_server:apptests",
       "//services/view_manager:mojo_view_manager_client_apptests",
       "//services/view_manager:view_manager_service_apptests",
@@ -74,9 +88,23 @@ if (is_nacl) {
   }
 }
 
+static_library("irt_mojo_nonsfi") {
+  sources = [
+    "irt_mojo_nonsfi.cc",
+    "irt_mojo_nonsfi.h",
+  ]
+
+  deps = [
+    "//mojo/public/c/system",
+    "//mojo/public/platform/nacl:mojo_irt_header",
+    "//native_client/src/nonsfi/irt:irt_interfaces",
+  ]
+}
+
 group("mojo_nacl") {
   deps = [
     "//services/nacl:nacl_content_handler",
+    "//services/nacl:nacl_content_handler_nonsfi",
   ]
 }
 
@@ -92,6 +120,7 @@ group("mojo_nacl_tests") {
   deps = [
     ":mojo_nacl_tests_untrusted(//native_client/build/toolchain/nacl:clang_newlib_${current_cpu})",
     ":monacl_shell",
+    ":monacl_shell_nonsfi_x86",
     ":mojo_pnacl_tests",
   ]
 }

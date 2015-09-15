@@ -5,12 +5,21 @@
 import("../rules.gni")
 
 dart_pkg("mojom") {
-  libs = [ "lib/generate.dart" ]
+  libs = [
+    "bin/mojom.dart",
+    "lib/src/generate.dart",
+    "lib/src/command_runner.dart",
+    "lib/src/commands/all.dart",
+    "lib/src/commands/check.dart",
+    "lib/src/commands/mojom_command.dart",
+    "lib/src/commands/single.dart",
+    "lib/src/commands/tree.dart",
+    "lib/src/utils.dart",
+    "test/generate_test.dart",
+  ]
   sources = [
     "CHANGELOG.md",
     "README.md",
-    "lib/src/options.dart",
-    "lib/src/utils.dart",
     "pubspec.yaml",
   ]
 }
